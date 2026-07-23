@@ -1,6 +1,7 @@
 import logging
 
 from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 import uuid
@@ -12,6 +13,7 @@ from app.conf.config import services
 from app.depends import get_db, get_llm
 from contextlib import asynccontextmanager
 from app.routers import market_data, ai_advisor
+from app import models, schemas, crud, agents, auth, db as db_module
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,6 +39,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 models.Base.metadata.create_all(bind=db_module.engine)
 
@@ -324,4 +327,54 @@ def get_asset_allocation(allocation_id: int, db: Session = Depends(get_db)):
         )
     return db_allocation
 
+# --- Authentication Endpoints ---
+
+@app.post("/api/auth/register", response_model=schemas.Token, status_code=201)
+def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
+    if crud.get_user_by_username(db, user_in.username):
+        raise HTTPException(status_code=400, detail="Username already registered")
+    if crud.get_user_by_email(db, user_in.email):
+        raise HTTPException(status_code=400, detail="Email already registered")
+    user = crud.create_user(db, user_in)
+    access_token = auth.create_access_token(data={"sub": user.username, "user_id": user.id})
+    return schemas.Token(
+        access_token=access_token,
+        token_type="bearer",
+        user=schemas.UserResponse.model_validate(user) if hasattr(schemas.UserResponse, "model_validate") else schemas.UserResponse.from_orm(user)
+    )
+
+
+@app.post("/api/auth/login", response_model=schemas.Token)
+def login(user_in: schemas.UserLogin, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, user_in.username)
+    if not user or not auth.verify_password(user_in.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+    access_token = auth.create_access_token(data={"sub": user.username, "user_id": user.id})
+    return schemas.Token(
+        access_token=access_token,
+        token_type="bearer",
+        user=schemas.UserResponse.model_validate(user) if hasattr(schemas.UserResponse, "model_validate") else schemas.UserResponse.from_orm(user)
+    )
+
+
+@app.get("/api/auth/me", response_model=schemas.UserResponse)
+def get_me(current_user: models.User = Depends(auth.get_current_user)):
+    return current_user
+
+
+@app.put("/api/auth/me/kyc", response_model=schemas.KYCUpdateResponse)
+def update_kyc(
+    kyc_in: schemas.KYCUpdateSchema,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
+):
+    updated_user = crud.update_user_kyc(db, current_user, kyc_in.kyc_completed)
+    return schemas.KYCUpdateResponse(
+        id=updated_user.id,
+        email=updated_user.email,
+        username=updated_user.username,
+        country=updated_user.country,
+        kyc_completed=updated_user.kyc_completed,
+        message="KYC status updated successfully",
+    )
 

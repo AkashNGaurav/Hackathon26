@@ -2,8 +2,10 @@ from sqlalchemy.exc import SQLAlchemyError
 import uuid
 from typing import Optional
 from sqlalchemy.orm import Session, joinedload
-from app import models, schemas
+from app import models, schemas, auth
 from datetime import datetime
+from typing import Optional
+
 
 
 def _commit_and_refresh(db: Session, db_obj):
