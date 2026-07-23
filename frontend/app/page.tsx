@@ -1,4 +1,5 @@
 import { DarkThemeToggle } from "flowbite-react";
+import Image from "next/image";
 
 const features = [
   {
@@ -41,11 +42,16 @@ export default function Home() {
     <main className="min-h-screen bg-[#f5f2ea] text-[#101410] transition-colors dark:bg-[#090b0a] dark:text-[#f6f3ea]">
       <header className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f2ea]/90 backdrop-blur dark:border-white/10 dark:bg-[#090b0a]/85">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
-          <a href="#" className="flex items-center gap-3" aria-label="ScaleBank home">
-            <span className="grid size-9 place-items-center rounded-full bg-[#101410] text-sm font-bold text-[#f5f2ea] dark:bg-[#f6f3ea] dark:text-[#090b0a]">
-              S
-            </span>
-            <span className="text-lg font-semibold tracking-normal">ScaleBank</span>
+          <a href="#" className="flex items-center gap-3" aria-label="FinSight home">
+            <Image
+              src="/logo.png"
+              alt="FinSight logo"
+              width={36}
+              height={36}
+              priority
+              className="size-9 shrink-0"
+            />
+            <span className="text-lg font-semibold tracking-normal">FinSight</span>
           </a>
 
           <div className="hidden items-center gap-8 text-sm font-medium text-[#3c423a] dark:text-[#c8c3b7] md:flex">
@@ -79,8 +85,18 @@ export default function Home() {
         <div className="absolute inset-x-0 top-0 h-52 bg-[#dfe8cf] dark:bg-[#17251e]" />
         <div className="relative mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl items-center gap-12 px-5 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
           <div className="max-w-2xl">
+            <div className="mb-7 inline-flex items-center gap-4 rounded-full border border-black/10 bg-white/60 px-4 py-3 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/8">
+              <Image
+                src="/logo.png"
+                alt="FinSight full logo"
+                width={190}
+                height={92}
+                priority
+                className="h-auto w-[170px] sm:w-[190px]"
+              />
+            </div>
             <p className="mb-5 text-sm font-semibold uppercase text-[#516246] dark:text-[#a7d48f]">
-              Invest with ScaleBank
+              Invest with FinSight
             </p>
             <h1 className="text-5xl font-semibold leading-[1.02] tracking-normal text-[#101410] dark:text-[#f6f3ea] md:text-7xl">
               Plan ahead. Live comfortably.
@@ -283,7 +299,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
           <div>
             <p className="text-lg font-semibold text-[#101410] dark:text-[#f6f3ea]">
-              ScaleBank
+              FinSight
             </p>
             <p className="mt-4 max-w-xl leading-7">
               This demo landing page is inspired by modern investment banking

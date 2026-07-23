@@ -4,8 +4,12 @@ import { ThemeInit } from "../.flowbite-react/init";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ScaleBank | Invest and Save",
-  description: "A modern finance landing page for investing, savings, and wealth management.",
+  title: "FinSight | Invest and Save",
+  description:
+    "FinSight is a modern finance landing page for investing, savings, and wealth management.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
