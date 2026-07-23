@@ -1,47 +1,25 @@
-"use client";
-
-import { getCurrentUser } from "@/lib/auth";
+import PortfolioNewsTicker from "@/components/PortfolioNewsTicker";
 import MarketIndicesBar from "@/components/MarketIndicesBar";
 import MarketInsightCard from "@/components/MarketInsightCard";
 import MarketNewsFeed from "@/components/MarketNewsFeed";
 import EUMarketTable from "@/components/EUMarketTable";
+<<<<<<< HEAD
 import PortfolioNewsTicker from "@/components/PortfolioNewsTicker";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+=======
+>>>>>>> 63d58b2 (feat: implement backend Pydantic schemas and frontend ETF dashboard with market data integration)
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [hasAccess, setHasAccess] = useState(false);
-
-  useEffect(() => {
-    async function checkAuth() {
-      const user = await getCurrentUser();
-      const isKycCompleted = user?.kycCompleted ?? user?.kyc_completed ?? false;
-
-      if (!user || !isKycCompleted) {
-        router.replace("/login");
-        return;
-      }
-
-      setHasAccess(true);
-    }
-
-    checkAuth();
-  }, [router]);
-
-  if (!hasAccess) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-[#f5f2ea] text-[#101410] dark:bg-[#07111f] dark:text-[#f3f7fb]">
-        <p className="text-sm text-[#4e574b] dark:text-[#a8bfd7]">Checking account access...</p>
-      </main>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen flex-col bg-[#f5f2ea] text-[#101410] dark:bg-[#07111f] dark:text-[#f3f7fb]">
+    <div className="flex flex-col min-h-screen bg-[#f5f2ea] text-[#101410] dark:bg-[#090b0a] dark:text-[#f6f3ea]">
+      {/* 1. Portfolio News Ticker at top */}
       <PortfolioNewsTicker />
+
+      {/* 2. Market Indices Quick-Stat Bar */}
       <MarketIndicesBar />
 
+      {/* 3. Main Dashboard Content Area */}
       <main className="flex-1 p-6 md:p-8">
         <div className="mx-auto max-w-7xl space-y-8">
           {/* Top Section: AI Market Insight Summary */}

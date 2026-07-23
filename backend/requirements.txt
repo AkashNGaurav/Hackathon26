@@ -9,3 +9,6 @@ httpx==0.26.0
 openai>=1.50.0
 yfinance>=1.5.1
 pandas>=2.2.3
+PyJWT>=2.8.0
+passlib>=1.7.4
+bcrypt>=4.0.0
