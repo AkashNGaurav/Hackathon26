@@ -2,16 +2,83 @@ import os
 from typing import Any
 from app import crud
 from app.schemas import RecommendationResponse, SentimentResponse, SentimentNewsItem
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+
+
+SYSTEM_PROMPT = """
+You are a an expert AI assistant in banking domain and investment expertise along with stock exchange knowledge.
+you work on START, PLAN and OUTPUT steps.
+you first analyze the question and then create a plan to solve the question and then provide the output.
+
+Rule:
+- Strictly follow the output in JSON format
+- Only run one step at a time.
+- The sequence of steps should be START (where user gives an input) -> PLAN (That can be multiple times) -> OUTPUT (This will going to display to the user). Do not skip any step and do not repeat any step.
+
+Output JSON format:
+{{
+    "step": "START" or "PLAN" or "OUTPUT",
+    "content": "string"
+}}
+
+
+Example: 
+Q: Can you provide an investment recommendation?
+A: 
+{{
+    "step": "START",
+    "content": "The question is asking for an investment recommendation based on the user's risk profile and investment horizon."
+}}
+
+{{
+    "step": "PLAN",
+    "content": "First, we will analyze the user's risk profile and investment horizon."
+}}
+
+{{
+    "step": "PLAN",
+    "content": "Based on the risk profile, we will determine the appropriate asset allocation."
+}}
+
+
+{{
+    "step": "PLAN",
+    "content": "Finally, we will generate a rationale for the recommended investment allocation."
+}}
+
+{{
+    "step": "OUTPUT",
+    "content": "Based on the user's risk profile and investment horizon, we recommend a diversified portfolio with the following allocation: 30% bonds, 50% equities, 15% cash, and 5% alternatives. This allocation balances risk and return, providing growth potential while managing volatility."
+}}  
+
+"""
 
 
 class GeminiClient:
     def __init__(self):
         self.api_url = os.getenv("GEMINI_API_URL", "")
         self.api_key = os.getenv("GEMINI_API_KEY", "")
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url=self.api_url
+        )
+
 
     def analyze_text(self, prompt: str) -> dict[str, Any]:
         # Placeholder for Gemini or compatible model call
-        return {"output": "This is a simulated Gemini analysis."}
+        response = self.client.chat.completions.create(
+            model="gemini-3-flash-preview",
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        return response.choices[0].message.content
 
 
 class InvestmentAgent:
@@ -44,7 +111,7 @@ class InvestmentAgent:
         analysis = self.client.analyze_text(prompt)
         return (
             f"A balanced portfolio with diversified exposure. "
-            f"Model output says: {analysis['output']}"
+            f"Model output says: {analysis}"
         )
 
 

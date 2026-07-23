@@ -1,8 +1,17 @@
 from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
 
 app = FastAPI(title="Fintech AI Assistant")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"] ,
+    allow_headers=["*"] ,
+)
 
 models.Base.metadata.create_all(bind=db_module.engine)
 
