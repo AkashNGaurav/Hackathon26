@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Literal, Optional
+from fastapi.params import Query
 
 
 class ExpenseEntryBase(BaseModel):
@@ -52,3 +53,16 @@ class ChatResponse(BaseModel):
     step: str = "OUTPUT"
     session_id: str
     agent: Literal["mutual_fund", "etf", "stock", "investment_advisor"]
+
+
+class LLMConfig:
+
+    def __init__(self, model: str = Query("gemini=3.5-flash", alias="modelName", description="name of LLM model"),
+    temperature: float = Query(0, ge=0, le=1, description="Sampling temperature"),
+                 max_tokens: Optional[int] = Query(None, alias="maxTokens", ge=1, description="MAx number of token for LLM Reponse"),
+                 max_retries: int = Query(6, alias="maxRetries", ge=0, description="Max number of retries for the LLM call")):
+
+        self.model = model,
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.max_retries  = max_retries
