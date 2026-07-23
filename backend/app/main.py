@@ -1,14 +1,19 @@
-from fastapi import FastAPI, HTTPException, Depends, Query
+import logging
+
+from fastapi import FastAPI, Depends, Query, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
 
 app = FastAPI(title="Fintech AI Assistant")
+logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"] ,
     allow_headers=["*"] ,
 )
@@ -20,13 +25,45 @@ def get_db():
     db = db_module.SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.exception("Database request failed: %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "The database is temporarily unavailable. Please try again."},
+    )
 
 
 @app.get("/api/health")
 def health():
     return {"status": "ok", "message": "AI fintech backend running"}
+
+
+@app.post("/api/chat/mutual-funds", response_model=schemas.ChatResponse)
+def chat_mutual_funds(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.MutualFundAgent(db).reply(request.message, request.session_id)
+
+
+@app.post("/api/chat/etfs", response_model=schemas.ChatResponse)
+def chat_etfs(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.EtfAgent(db).reply(request.message, request.session_id)
+
+
+@app.post("/api/chat/stocks", response_model=schemas.ChatResponse)
+def chat_stocks(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.StockAgent(db).reply(request.message, request.session_id)
+
+
+@app.post("/api/chat/investment-advisor", response_model=schemas.ChatResponse)
+def chat_investment_advisor(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.InvestmentAdvisorAgent(db).reply(request.message, request.session_id)
 
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)

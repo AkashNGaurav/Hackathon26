@@ -94,7 +94,13 @@ The backend includes an agent pattern for investment and sentiment recommendatio
 ## Endpoints
 
 - `GET /api/health`
+- `POST /api/chat/mutual-funds`
+- `POST /api/chat/etfs`
+- `POST /api/chat/stocks`
+- `POST /api/chat/investment-advisor`
 - `GET /api/recommendations?risk_profile=moderate&investment_horizon=5`
 - `GET /api/sentiment`
 - `GET /api/expenses`
 - `POST /api/expenses`
+
+See [specialist-chat-agents.md](docs/specialist-chat-agents.md) for the API contracts, session memory model, and request flow.

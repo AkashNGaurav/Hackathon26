@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Text
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, Index
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
 
@@ -25,3 +25,19 @@ class MarketNews(Base):
     sentiment = Column(String(50), nullable=False)
     excerpt = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class AgentCheckpoint(Base):
+    """A persisted chat turn used to restore an agent's conversation context."""
+
+    __tablename__ = "agent_checkpoints"
+    __table_args__ = (
+        Index("ix_agent_checkpoints_session_agent_created", "session_id", "agent_type", "created_at"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(64), nullable=False, index=True)
+    agent_type = Column(String(32), nullable=False, index=True)
+    role = Column(String(16), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)

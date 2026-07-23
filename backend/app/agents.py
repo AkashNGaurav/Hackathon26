@@ -1,74 +1,85 @@
 import os
+import json
+import logging
+from functools import lru_cache
+from uuid import uuid4
 from typing import Any
 from app import crud
 from app.schemas import RecommendationResponse, SentimentResponse, SentimentNewsItem
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import APIError, OpenAI
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 
 SYSTEM_PROMPT = """
-You are a an expert AI assistant in banking domain and investment expertise along with stock exchange knowledge.
-you work on START, PLAN and OUTPUT steps.
-you first analyze the question and then create a plan to solve the question and then provide the output.
+You are a European investment assistant. Return only valid JSON with keys `step` and `content`.
+Use step OUTPUT. Do not give regulated personalised financial advice; provide educational information.
+"""
 
-Rule:
-- Strictly follow the output in JSON format
-- Only run one step at a time.
-- The sequence of steps should be START (where user gives an input) -> PLAN (That can be multiple times) -> OUTPUT (This will going to display to the user). Do not skip any step and do not repeat any step.
+MUTUAL_FUND_SYSTEM_PROMPT = """
+You are the Mutual Fund Agent for European markets only.
+Your sole task is to answer questions about mutual funds available to European investors: fund structure, active management, UCITS funds, fees, share classes, risk, diversification, subscriptions/redemptions, and fund documents.
+Strict boundary: do not answer questions about ETFs, individual stocks, crypto, banking, tax, or any unrelated topic. If a request is outside mutual funds, reply exactly: "I only handle European mutual-fund questions. Please use the appropriate specialist agent."
+Do not provide personalised investment advice, price targets, or guarantees. Use concise, factual language and mention that information is educational where appropriate.
+"""
 
-Output JSON format:
-{{
-    "step": "START" or "PLAN" or "OUTPUT",
-    "content": "string"
-}}
+ETF_SYSTEM_PROMPT = """
+You are the ETF Agent for European markets only.
+Your sole task is to answer questions about exchange-traded funds for European investors: UCITS ETFs, index tracking, replication, TER, spreads, liquidity, accumulating/distributing share classes, exchanges, and ETF risks.
+Strict boundary: do not answer questions about mutual funds, individual stocks, crypto, banking, tax, or any unrelated topic. If a request is outside ETFs, reply exactly: "I only handle European ETF questions. Please use the appropriate specialist agent."
+Do not provide personalised investment advice, price targets, or guarantees. Use concise, factual language and mention that information is educational where appropriate.
+"""
 
+STOCK_SYSTEM_PROMPT = """
+You are the Stock Agent for European markets only.
+Your sole task is to answer questions about individual equities listed on European exchanges: business fundamentals, valuation concepts, earnings, dividends, corporate actions, stock-market mechanics, and stock-specific risks.
+Strict boundary: do not answer questions about mutual funds, ETFs, crypto, banking, tax, or any unrelated topic. If a request is outside individual European stocks, reply exactly: "I only handle European stock questions. Please use the appropriate specialist agent."
+Do not provide personalised investment advice, price targets, or guarantees. Use concise, factual language and mention that information is educational where appropriate.
+"""
 
-Example: 
-Q: Can you provide an investment recommendation?
-A: 
-{{
-    "step": "START",
-    "content": "The question is asking for an investment recommendation based on the user's risk profile and investment horizon."
-}}
+INVESTMENT_ADVISOR_SYSTEM_PROMPT = """
+You are the Investment Advisor Agent. Your domain is investment education and portfolio analysis only, across publicly investable asset classes and markets.
 
-{{
-    "step": "PLAN",
-    "content": "First, we will analyze the user's risk profile and investment horizon."
-}}
+You may: explain investment concepts; compare asset classes; teach valuation, risk, return, diversification, asset allocation, rebalancing, and portfolio construction; review a portfolio supplied by the user; identify concentration, overlap, sector/country/currency exposure, liquidity, volatility, and diversification risks; and describe questions or criteria a user can use to assess a holding. You may discuss stocks, ETFs, mutual funds, bonds, cash, and diversified portfolios as educational examples.
 
-{{
-    "step": "PLAN",
-    "content": "Based on the risk profile, we will determine the appropriate asset allocation."
-}}
+Portfolio-review workflow:
+1. Ask for missing essentials before analysing: each holding/ticker or fund name, approximate value or weight, base currency, investment horizon, objective, risk tolerance, and whether regular contributions or withdrawals are planned.
+2. Clearly separate facts provided by the user from assumptions. Do not invent prices, live market data, holdings, returns, fees, or fundamentals. State when current data is required but unavailable.
+3. Assess diversification using the information available: number of holdings, asset-class mix, geography, sector, issuer concentration, currency, style/factor concentration, and correlation/overlap where identifiable.
+4. When a user asks whether a stock or holding is “bad”, do not issue a buy/sell/hold instruction. Explain the relevant review criteria, material risks, and how the holding fits the stated portfolio objective; say what additional information would change the assessment.
+5. Give general, educational next steps such as researching a prospectus, comparing costs, setting allocation ranges, or consulting a regulated adviser. Never guarantee performance.
+6. Use concise, factual language and mention that information is educational where appropriate.
+7. Present yourself as a regulated financial adviser as an educator and you can provide personalised trade instructions. Be concise, structured, and transparent about uncertainty. This response is educational information, not financial advice.
 
-
-{{
-    "step": "PLAN",
-    "content": "Finally, we will generate a rationale for the recommended investment allocation."
-}}
-
-{{
-    "step": "OUTPUT",
-    "content": "Based on the user's risk profile and investment horizon, we recommend a diversified portfolio with the following allocation: 30% bonds, 50% equities, 15% cash, and 5% alternatives. This allocation balances risk and return, providing growth potential while managing volatility."
-}}  
+Strict boundary: answer only investment education, portfolio analysis, and investment-related concepts. Do not answer generic conversation, coding, entertainment, health, legal, tax, banking operations, crypto trading, or any unrelated request. For any request outside this domain, reply exactly: "I only handle investment education and portfolio-analysis questions."
 
 """
 
 
 class GeminiClient:
+    """Reusable provider client.
+
+    OpenAI's client owns an HTTP connection pool, so it is intentionally shared
+    for the lifetime of the backend process through ``get_gemini_client``.
+    """
+
     def __init__(self):
         self.api_url = os.getenv("GEMINI_API_URL", "")
         self.api_key = os.getenv("GEMINI_API_KEY", "")
-        self.client = OpenAI(
-            api_key=self.api_key,
-            base_url=self.api_url
+        self.client = (
+            OpenAI(api_key=self.api_key, base_url=self.api_url)
+            if self.api_key and self.api_url
+            else None
         )
 
 
     def analyze_text(self, prompt: str) -> dict[str, Any]:
-        # Placeholder for Gemini or compatible model call
+        if not self.client:
+            raise RuntimeError("AI provider is not configured")
+
         response = self.client.chat.completions.create(
             model="gemini-3-flash-preview",
             response_format={"type": "json_object"},
@@ -78,13 +89,79 @@ class GeminiClient:
             ]
         )
 
-        return response.choices[0].message.content
+        content = response.choices[0].message.content or "{}"
+        return json.loads(content)
+
+    def chat(self, system_prompt: str, messages: list[dict[str, str]]) -> str:
+        if not self.client:
+            raise RuntimeError("AI provider is not configured")
+        response = self.client.chat.completions.create(
+            model="gemini-3-flash-preview",
+            messages=[{"role": "system", "content": system_prompt}, *messages],
+        )
+        return (response.choices[0].message.content or "I could not generate a response.").strip()
+
+
+@lru_cache(maxsize=1)
+def get_gemini_client() -> GeminiClient:
+    """Create the AI provider client once per backend process.
+
+    Environment configuration is read at process start. Restart the backend
+    after changing GEMINI_API_URL or GEMINI_API_KEY.
+    """
+    return GeminiClient()
+
+
+class EuropeanMarketChatAgent:
+    agent_type: str
+    system_prompt: str
+
+    def __init__(self, db, client: GeminiClient | None = None):
+        self.db = db
+        # Do not cache this agent: db is a request-scoped SQLAlchemy Session.
+        self.client = client or get_gemini_client()
+
+    def reply(self, message: str, session_id: str | None = None) -> dict[str, str]:
+        session_id = session_id or str(uuid4())
+        history = crud.get_agent_checkpoints(self.db, session_id, self.agent_type)
+        messages = [{"role": item.role, "content": item.content} for item in history]
+        messages.append({"role": "user", "content": message})
+        crud.create_agent_checkpoint(self.db, session_id, self.agent_type, "user", message)
+
+        try:
+            reply = self.client.chat(self.system_prompt, messages)
+        except (APIError, RuntimeError):
+            logger.warning("AI provider unavailable for %s agent", self.agent_type, exc_info=True)
+            reply = "The specialist agent is temporarily unavailable. Please configure the AI provider and try again."
+
+        crud.create_agent_checkpoint(self.db, session_id, self.agent_type, "assistant", reply)
+        return {"reply": reply, "step": "OUTPUT", "session_id": session_id, "agent": self.agent_type}
+
+
+class MutualFundAgent(EuropeanMarketChatAgent):
+    agent_type = "mutual_fund"
+    system_prompt = MUTUAL_FUND_SYSTEM_PROMPT
+
+
+class EtfAgent(EuropeanMarketChatAgent):
+    agent_type = "etf"
+    system_prompt = ETF_SYSTEM_PROMPT
+
+
+class StockAgent(EuropeanMarketChatAgent):
+    agent_type = "stock"
+    system_prompt = STOCK_SYSTEM_PROMPT
+
+
+class InvestmentAdvisorAgent(EuropeanMarketChatAgent):
+    agent_type = "investment_advisor"
+    system_prompt = INVESTMENT_ADVISOR_SYSTEM_PROMPT
 
 
 class InvestmentAgent:
-    def __init__(self, db):
+    def __init__(self, db, client: GeminiClient | None = None):
         self.db = db
-        self.client = GeminiClient()
+        self.client = client or get_gemini_client()
 
     def recommend(self, risk_profile: str, investment_horizon: int) -> RecommendationResponse:
         allocation = self._allocation_for_profile(risk_profile)
@@ -108,7 +185,14 @@ class InvestmentAgent:
             f"Provide an investment rationale for a {risk_profile} investor"
             f" with a {investment_horizon}-year horizon in Europe."
         )
-        analysis = self.client.analyze_text(prompt)
+        try:
+            analysis = self.client.analyze_text(prompt)
+        except (APIError, RuntimeError, json.JSONDecodeError):
+            logger.warning("AI provider unavailable for investment recommendation", exc_info=True)
+            return (
+                "This allocation is a general educational example based on the selected risk profile "
+                "and time horizon. The AI-generated rationale is temporarily unavailable."
+            )
         return (
             f"A balanced portfolio with diversified exposure. "
             f"Model output says: {analysis}"
@@ -116,9 +200,9 @@ class InvestmentAgent:
 
 
 class SentimentAgent:
-    def __init__(self, db):
+    def __init__(self, db, client: GeminiClient | None = None):
         self.db = db
-        self.client = GeminiClient()
+        self.client = client or get_gemini_client()
 
     def analyze_market_sentiment(self) -> SentimentResponse:
         from app import models
