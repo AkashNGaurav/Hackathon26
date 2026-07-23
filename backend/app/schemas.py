@@ -132,3 +132,105 @@ class AIRecommendResponse(BaseModel):
     recommendation_summary: str
     analysis_details: list[str]
     risk_profile: str
+
+
+class WalletResponse(BaseModel):
+    id: int
+    user_id: Optional[int] = 1
+    balance: float
+    currency: str
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class WalletDepositRequest(BaseModel):
+    amount: float = Field(..., gt=0)
+
+
+class OrderRequest(BaseModel):
+    symbol: str
+    asset_name: str
+    asset_type: str  # Stock, ETF, Mutual Fund
+    transaction_type: str  # BUY, SELL
+    order_type: str = "LUMP_SUM"  # LUMP_SUM, SIP
+    sip_frequency: Optional[str] = None  # monthly, quarterly, yearly
+    quantity: float
+    price_per_unit: float
+
+
+class OrderResponse(BaseModel):
+    id: int
+    user_id: Optional[int] = 1
+    symbol: str
+    asset_name: str
+    asset_type: str
+    transaction_type: str
+    order_type: str
+    sip_frequency: Optional[str] = None
+    quantity: float
+    price_per_unit: float
+    total_amount: float
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PortfolioPositionResponse(BaseModel):
+    id: int
+    symbol: str
+    asset_name: str
+    asset_type: str
+    quantity: float
+    average_buy_price: float
+    total_invested: float
+    current_price: Optional[float] = None
+    current_value: Optional[float] = None
+    unrealized_pnl: Optional[float] = None
+    unrealized_pnl_pct: Optional[float] = None
+    price_change: Optional[float] = 0.0
+    percentage_change: Optional[float] = 0.0
+    is_positive: Optional[bool] = True
+    market_status: Optional[str] = "OPEN"
+    currency: Optional[str] = "EUR"
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MFRecommendRequest(BaseModel):
+    goal: str = Field("custom", example="home")  # home, education, retirement, custom
+    custom_goal_title: Optional[str] = None
+    target_amount: float = Field(50000.0, example=50000.0)
+    target_years: int = Field(5, example=5)
+    risk_profile: str = Field("moderate", example="moderate")  # conservative, moderate, aggressive
+
+
+class MFRecommendItem(BaseModel):
+    symbol: str
+    name: str
+    nav_price: float
+    percentage_change: float
+    is_positive: bool
+    recommended_sip_amount: float
+    expected_annual_return: float
+    target_years: int
+    projected_target_value: float
+    ai_rationale: str
+    match_score: int
+
+
+class MFRecommendResponse(BaseModel):
+    goal: str
+    custom_goal_title: Optional[str] = None
+    risk_profile: str
+    target_amount: float
+    target_years: int
+    goal_title: str
+    recommendations: list[MFRecommendItem]
+
+

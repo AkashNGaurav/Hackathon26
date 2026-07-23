@@ -14,8 +14,8 @@ export default function DashboardPage() {
       <MarketIndicesBar />
 
       {/* 3. Main Dashboard Content Area */}
-      <main className="flex-1 p-6 md:p-8">
-        <div className="mx-auto max-w-7xl space-y-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6 lg:space-y-8">
           {/* AI Market Insight Summary */}
           <section id="market-insights">
             <MarketInsightCard />

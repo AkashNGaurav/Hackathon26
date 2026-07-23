@@ -38,7 +38,7 @@ EXCHANGE_NAMES = {
     ".MC": "Bolsa de Madrid",
 }
 
-# Reliable fallback dataset for major EU assets in case yfinance is offline or rate-limited
+# Reliable fallback dataset for European market assets in EUR currency
 FALLBACK_EU_ASSETS = {
     "MC.PA": {
         "name": "LVMH Moët Hennessy Louis Vuitton",
@@ -63,10 +63,10 @@ FALLBACK_EU_ASSETS = {
         "volume": 620400,
     },
     "VUAA.L": {
-        "name": "Vanguard S&P 500 UCITS ETF",
+        "name": "Vanguard S&P 500 UCITS ETF (EUR)",
         "asset_type": "ETF",
         "exchange": "London Stock Exchange",
-        "currency": "USD",
+        "currency": "EUR",
         "price": 94.25,
         "nav": 94.20,
         "prev": 93.60,
@@ -95,6 +95,100 @@ FALLBACK_EU_ASSETS = {
         "high": 196.20,
         "low": 192.00,
         "volume": 890000,
+    },
+    "OR.PA": {
+        "name": "L'Oréal S.A.",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 388.50,
+        "prev": 385.20,
+        "high": 390.10,
+        "low": 384.80,
+        "volume": 290000,
+    },
+    "AIR.PA": {
+        "name": "Airbus SE",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 134.60,
+        "prev": 133.10,
+        "high": 135.20,
+        "low": 132.80,
+        "volume": 510000,
+    },
+    "IWDA.AS": {
+        "name": "iShares Core MSCI World UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "Euronext Amsterdam",
+        "currency": "EUR",
+        "price": 88.50,
+        "nav": 88.45,
+        "prev": 87.90,
+        "high": 88.90,
+        "low": 87.80,
+        "volume": 980000,
+    },
+    "MEUD.PA": {
+        "name": "Amundi Stoxx Europe 600 UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 412.30,
+        "nav": 412.25,
+        "prev": 410.50,
+        "high": 413.50,
+        "low": 410.00,
+        "volume": 320000,
+    },
+    "C3M.PA": {
+        "name": "Amundi EUR Cash UCITS Mutual Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 105.40,
+        "nav": 105.40,
+        "prev": 105.35,
+        "high": 105.50,
+        "low": 105.30,
+        "volume": 0,
+    },
+    "EUEA.PA": {
+        "name": "iShares MSCI Europe UCITS Mutual Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 76.20,
+        "nav": 76.20,
+        "prev": 75.80,
+        "high": 76.50,
+        "low": 75.60,
+        "volume": 0,
+    },
+    "VFIAX": {
+        "name": "Vanguard 500 Index Fund Admiral (EUR Hedged)",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 432.10,
+        "nav": 432.10,
+        "prev": 428.50,
+        "high": 433.00,
+        "low": 428.00,
+        "volume": 0,
+    },
+    "VTSAX": {
+        "name": "Vanguard Total Stock Index Admiral (EUR Hedged)",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 118.50,
+        "nav": 118.50,
+        "prev": 117.20,
+        "high": 119.00,
+        "low": 117.00,
+        "volume": 0,
     },
 }
 
@@ -217,41 +311,82 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
 
 
 @router.get("/{symbol}/history", response_model=list[schemas.AssetHistoryData])
-def get_market_history(symbol: str, period: str = "1mo", exchange: Optional[str] = Query(None)):
-    """Fetch historical price data for charting."""
+def get_market_history(
+    symbol: str, 
+    period: str = "1mo", 
+    interval: Optional[str] = None, 
+    exchange: Optional[str] = Query(None)
+):
+    """Fetch historical price data for charting (Line & Candlestick)."""
+    import math
     clean_sym, _ = normalize_eu_symbol(symbol, exchange)
     
     try:
         import yfinance as yf
         ticker = yf.Ticker(clean_sym)
-        hist = ticker.history(period=period)
         
+        # Determine interval based on period if not specified
+        if not interval:
+            if period in ["1d", "5d"]:
+                interval = "15m"
+            elif period in ["1mo", "3mo"]:
+                interval = "1d"
+            else:
+                interval = "1wk"
+                
+        hist = ticker.history(period=period, interval=interval)
+        
+        if hist.empty:
+            hist = ticker.history(period=period)
+
         if hist.empty:
             return []
             
         history_data = []
         for date, row in hist.iterrows():
+            fmt = "%m-%d %H:%M" if period in ["1d", "5d"] else "%Y-%m-%d"
+            date_str = date.strftime(fmt)
+            c = round(float(row["Close"]), 2)
+            o = round(float(row["Open"]), 2) if "Open" in row and not math.isnan(row["Open"]) else c
+            h = round(float(row["High"]), 2) if "High" in row and not math.isnan(row["High"]) else max(o, c)
+            l = round(float(row["Low"]), 2) if "Low" in row and not math.isnan(row["Low"]) else min(o, c)
+            v = int(row["Volume"]) if "Volume" in row and not math.isnan(row["Volume"]) else 0
+            
             history_data.append(schemas.AssetHistoryData(
-                date=date.strftime("%Y-%m-%d"),
-                price=round(float(row["Close"]), 2)
+                date=date_str,
+                price=c,
+                open=o,
+                high=h,
+                low=l,
+                close=c,
+                volume=v
             ))
             
         return history_data
     except Exception as err:
         logger.warning(f"yfinance history fetch failed for {clean_sym}: {err}")
         
-        # Generate some mock data for fallback so frontend doesn't break
         from datetime import datetime, timedelta
         import random
         
         base_price = FALLBACK_EU_ASSETS.get(clean_sym, {}).get("price", 150.0)
         history_data = []
-        for i in range(30):
-            date_str = (datetime.now() - timedelta(days=30-i)).strftime("%Y-%m-%d")
-            base_price = base_price * (1 + random.uniform(-0.015, 0.015))
+        days = 1 if period == "1d" else (5 if period == "5d" else (30 if period == "1mo" else 365))
+        for i in range(days):
+            date_str = (datetime.now() - timedelta(days=days-i)).strftime("%Y-%m-%d")
+            op = base_price * (1 + random.uniform(-0.01, 0.01))
+            cl = op * (1 + random.uniform(-0.02, 0.02))
+            hi = max(op, cl) * (1 + random.uniform(0.001, 0.01))
+            lo = min(op, cl) * (1 - random.uniform(0.001, 0.01))
+            base_price = cl
             history_data.append(schemas.AssetHistoryData(
                 date=date_str,
-                price=round(base_price, 2)
+                price=round(cl, 2),
+                open=round(op, 2),
+                high=round(hi, 2),
+                low=round(lo, 2),
+                close=round(cl, 2),
+                volume=random.randint(50000, 1000000)
             ))
         return history_data
 

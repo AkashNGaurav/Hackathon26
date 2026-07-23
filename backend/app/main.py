@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, auth, db as db_module
-from app.routers import market_data, ai_advisor
+from app.routers import market_data, ai_advisor, trading
 
 app = FastAPI(title="Fintech AI Assistant")
 
@@ -12,10 +12,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001",
-        "*",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -23,11 +23,22 @@ app.add_middleware(
 )
 
 
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    return {}
+
+
 models.Base.metadata.create_all(bind=db_module.engine)
 
 # Register routers
 app.include_router(market_data.router)
 app.include_router(ai_advisor.router)
+app.include_router(trading.router)
+
+
+@app.post("/api/ai/recommend-mf")
+def recommend_mf_alias(payload: schemas.MFRecommendRequest):
+    return ai_advisor.get_ai_mutual_fund_recommendations(payload)
 
 
 def get_db():
@@ -45,7 +56,7 @@ def health():
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 def get_recommendations(
-    risk_profile: str = Query("moderate", pattern="^(low|moderate|high)$"),
+    risk_profile: str = Query("moderate"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
 ):
