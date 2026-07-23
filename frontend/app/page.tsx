@@ -72,10 +72,16 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <DarkThemeToggle />
             <a
-              href="#account"
+              href="#login"
               className="hidden rounded-full bg-[#101410] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2d342d] dark:bg-[#f6f3ea] dark:text-[#090b0a] dark:hover:bg-white sm:inline-flex"
             >
-              Open account
+              Login
+            </a>
+            <a
+              href="#register"
+              className="hidden rounded-full bg-[#101410] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2d342d] dark:bg-[#f6f3ea] dark:text-[#090b0a] dark:hover:bg-white sm:inline-flex"
+            >
+              Register
             </a>
           </div>
         </nav>
