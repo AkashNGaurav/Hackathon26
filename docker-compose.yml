@@ -19,7 +19,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://fintech:fintech123@db:5432/fintech
       GEMINI_API_URL: https://generativelanguage.googleapis.com/v1beta/openai/
-      GEMINI_API_KEY: AkashGaurav-2026-07-23T00:00:00.000000Z
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
       - db
     ports:
