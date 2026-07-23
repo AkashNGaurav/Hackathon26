@@ -103,6 +103,24 @@ class AssetDataResponse(BaseModel):
     market_status: str = "OPEN"
 
 
+class AssetHistoryData(BaseModel):
+    date: str
+    price: float
+
+
+class AssetProfileData(BaseModel):
+    sector: Optional[str] = None
+    industry: Optional[str] = None
+    website: Optional[str] = None
+    market_cap: Optional[int] = None
+    business_summary: Optional[str] = None
+    total_assets: Optional[int] = None
+    yield_pct: Optional[float] = None
+    ytd_return: Optional[float] = None
+    category: Optional[str] = None
+    fund_family: Optional[str] = None
+
+
 class AIRecommendRequest(BaseModel):
     symbols: list[str] = Field(default_factory=lambda: ["MC.PA", "VW.DE", "VUAA.L", "ASML.AS"])
     risk_profile: str = Field("moderate", example="moderate")
