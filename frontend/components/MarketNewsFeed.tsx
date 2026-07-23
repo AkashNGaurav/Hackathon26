@@ -212,11 +212,10 @@ export function MarketNewsFeed() {
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`rounded-full px-4 py-2 text-xs font-semibold transition-all ${
-                isActive
-                  ? "bg-[#101410] text-white shadow-xs dark:bg-[#f6f3ea] dark:text-[#090b0a]"
-                  : "bg-white/70 text-[#4e574b] hover:bg-white hover:text-[#101410] dark:bg-white/5 dark:text-[#c8c3b7] dark:hover:bg-white/10 dark:hover:text-white"
-              }`}
+              className={`rounded-full px-4 py-2 text-xs font-semibold transition-all ${isActive
+                ? "bg-[#101410] text-white shadow-xs dark:bg-[#f6f3ea] dark:text-[#090b0a]"
+                : "bg-white/70 text-[#4e574b] hover:bg-white hover:text-[#101410] dark:bg-white/5 dark:text-[#c8c3b7] dark:hover:bg-white/10 dark:hover:text-white"
+                }`}
             >
               {category}
             </button>
@@ -323,7 +322,7 @@ export function MarketNewsFeed() {
             More Market Coverage
           </h4>
 
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             {gridArticles.map((article) => (
               <Card
                 key={article.id}

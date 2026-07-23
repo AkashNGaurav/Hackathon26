@@ -1,6 +1,49 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
 from typing import Optional, Literal
+
+
+class UserRegister(BaseModel):
+    email: str
+    username: str
+    password: str
+    country: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    username: str
+    country: Optional[str] = None
+    kyc_completed: bool
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    user_id: Optional[int] = None
+
+
+class KYCUpdateSchema(BaseModel):
+    kyc_completed: bool = True
+
+
+class KYCUpdateResponse(UserResponse):
+    message: str = "KYC status updated successfully"
+
 
 
 class ExpenseEntryBase(BaseModel):
