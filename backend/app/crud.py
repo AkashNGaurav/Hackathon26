@@ -1,5 +1,7 @@
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+import uuid
+from typing import Optional
+from sqlalchemy.orm import Session, joinedload
 from app import models, schemas
 from datetime import datetime
 
@@ -73,3 +75,118 @@ def create_agent_checkpoint(
         created_at=datetime.utcnow(),
     )
     return _commit_and_refresh(db, checkpoint)
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+    return db_obj
+
+
+# --- Asset CRUD Operations ---
+
+def get_asset(db: Session, asset_id: uuid.UUID) -> Optional[models.Asset]:
+    return db.query(models.Asset).filter(models.Asset.id == asset_id).first()
+
+
+def get_asset_by_code(db: Session, asset_code: str) -> Optional[models.Asset]:
+    return db.query(models.Asset).filter(models.Asset.asset_code == asset_code).first()
+
+
+def get_assets(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    asset_type: Optional[str] = None,
+    is_active: Optional[bool] = None,
+) -> list[models.Asset]:
+    query = db.query(models.Asset)
+    if asset_type is not None:
+        query = query.filter(models.Asset.asset_type == asset_type)
+    if is_active is not None:
+        query = query.filter(models.Asset.is_active == is_active)
+    return query.order_by(models.Asset.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def create_asset(db: Session, asset: schemas.AssetCreate) -> models.Asset:
+    db_asset = models.Asset(
+        asset_code=asset.asset_code,
+        asset_name=asset.asset_name,
+        asset_type=asset.asset_type,
+        issuer=asset.issuer,
+        symbol=asset.symbol,
+        exchange=asset.exchange,
+        currency=asset.currency,
+        current_price=asset.current_price,
+        risk_level=asset.risk_level,
+        logo_url=asset.logo_url,
+        is_active=asset.is_active,
+    )
+    db.add(db_asset)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
+
+
+def update_asset(db: Session, db_asset: models.Asset, asset_update: schemas.AssetUpdate) -> models.Asset:
+    update_data = asset_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_asset, field, value)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
+
+
+def delete_asset(db: Session, db_asset: models.Asset) -> bool:
+    db.delete(db_asset)
+    db.commit()
+    return True
+
+
+# --- Asset Allocation CRUD Operations ---
+
+def get_asset_allocation(db: Session, allocation_id: int) -> Optional[models.AssetAllocation]:
+    return (
+        db.query(models.AssetAllocation)
+        .options(joinedload(models.AssetAllocation.asset))
+        .filter(models.AssetAllocation.id == allocation_id)
+        .first()
+    )
+
+
+def get_asset_allocations(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    user_id: Optional[uuid.UUID] = None,
+    asset_id: Optional[uuid.UUID] = None,
+) -> list[models.AssetAllocation]:
+    query = db.query(models.AssetAllocation).options(joinedload(models.AssetAllocation.asset))
+    if user_id is not None:
+        query = query.filter(models.AssetAllocation.user_id == user_id)
+    if asset_id is not None:
+        query = query.filter(models.AssetAllocation.asset_id == asset_id)
+    return query.order_by(models.AssetAllocation.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def create_asset_allocation(db: Session, allocation: schemas.AssetAllocationCreate) -> models.AssetAllocation:
+    invested = allocation.invested_amount
+    if invested is None:
+        invested = allocation.quantity * allocation.average_buy_price
+
+    db_allocation = models.AssetAllocation(
+        user_id=allocation.user_id,
+        asset_id=allocation.asset_id,
+        quantity=allocation.quantity,
+        average_buy_price=allocation.average_buy_price,
+        invested_amount=invested,
+        current_value=allocation.current_value,
+        purchase_date=allocation.purchase_date,
+    )
+    db.add(db_allocation)
+    db.commit()
+    db.refresh(db_allocation)
+    # Refresh eager relationship
+    db.query(models.AssetAllocation).options(joinedload(models.AssetAllocation.asset)).filter(models.AssetAllocation.id == db_allocation.id).first()
+    return db_allocation
+
+
+

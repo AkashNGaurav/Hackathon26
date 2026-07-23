@@ -188,12 +188,11 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(
-        Integer,
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        index=True,
-        autoincrement=True,
-        comment="Unique identifier for the user"
+        default=uuid.uuid4,
+        comment="Unique identifier (UUID v4) for the user"
     )
     email: Mapped[str] = mapped_column(
         String(255),
@@ -258,7 +257,8 @@ class AssetAllocation(Base):
         autoincrement=True
     )
 
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
