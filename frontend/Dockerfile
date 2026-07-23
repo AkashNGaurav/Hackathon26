@@ -1,8 +1,24 @@
-FROM node:20-slim
+# Use an official Node.js image as the base image
+FROM node:20-alpine
+
+# Set the working directory inside the container
 WORKDIR /app
+
+# Copy package.json and package-lock.json
 COPY package.json ./
+COPY package-lock.json ./
+
+# Install dependencies
 RUN npm install
-COPY . ./
-EXPOSE 5173
-ENV VITE_API_BASE=http://backend:8000/api
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the Next.js application
+RUN npm run build
+
+# Expose the port Next.js runs on
+EXPOSE 3000
+
+# Start the Next.js server
+CMD ["npm", "start"]
