@@ -69,7 +69,42 @@ def create_user(db: Session, user_data: schemas.UserRegisterRequest) -> models.U
     return db_user
 
 
+def get_users(db: Session, skip: int = 0, limit: int = 100) -> list[models.User]:
+    return db.query(models.User).order_by(models.User.created_at.desc()).offset(skip).limit(limit).all()
+
+
+def authenticate_user(db: Session, identifier: str, password: str) -> Optional[models.User]:
+    from app.auth_utils import verify_password
+    user = get_user_by_username(db, identifier)
+    if not user:
+        user = get_user_by_email(db, identifier)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+
+def update_user(db: Session, db_user: models.User, user_update: schemas.UserUpdateRequest) -> models.User:
+    from app.auth_utils import hash_password
+    update_data = user_update.model_dump(exclude_unset=True)
+    if "password" in update_data and update_data["password"]:
+        update_data["hashed_password"] = hash_password(update_data.pop("password"))
+    for field, value in update_data.items():
+        setattr(db_user, field, value)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def delete_user(db: Session, db_user: models.User) -> bool:
+    db.delete(db_user)
+    db.commit()
+    return True
+
+
 # --- Asset CRUD Operations ---
+
 
 def get_asset(db: Session, asset_id: uuid.UUID) -> Optional[models.Asset]:
     return db.query(models.Asset).filter(models.Asset.id == asset_id).first()

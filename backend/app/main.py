@@ -59,6 +59,84 @@ def register_user(user_data: schemas.UserRegisterRequest, db: Session = Depends(
     )
 
 
+@app.post("/api/auth/login", response_model=schemas.AuthTokenResponse)
+def login_user(login_data: schemas.UserLoginRequest, db: Session = Depends(get_db)):
+    from app.auth_utils import create_access_token
+    db_user = crud.authenticate_user(db, identifier=login_data.username, password=login_data.password)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username/email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = create_access_token(user_id=db_user.id, username=db_user.username, email=db_user.email)
+    return schemas.AuthTokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=db_user
+    )
+
+
+# --- User CRUD Endpoints ---
+
+@app.get("/api/users", response_model=list[schemas.UserResponse])
+def list_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    return crud.get_users(db, skip=skip, limit=limit)
+
+
+@app.get("/api/users/{user_id}", response_model=schemas.UserResponse)
+def get_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_id(db, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID '{user_id}' not found."
+        )
+    return db_user
+
+
+@app.put("/api/users/{user_id}", response_model=schemas.UserResponse)
+def update_user(user_id: uuid.UUID, user_update: schemas.UserUpdateRequest, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_id(db, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID '{user_id}' not found."
+        )
+    if user_update.email and user_update.email != db_user.email:
+        existing_email = crud.get_user_by_email(db, user_update.email)
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Email '{user_update.email}' is already in use."
+            )
+    if user_update.username and user_update.username != db_user.username:
+        existing_username = crud.get_user_by_username(db, user_update.username)
+        if existing_username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Username '{user_update.username}' is already in use."
+            )
+    return crud.update_user(db, db_user, user_update)
+
+
+@app.delete("/api/users/{user_id}")
+def delete_user(user_id: uuid.UUID, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_id(db, user_id)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID '{user_id}' not found."
+        )
+    crud.delete_user(db, db_user)
+    return {"message": f"User '{db_user.username}' deleted successfully", "id": str(user_id)}
+
+
+
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 def get_recommendations(

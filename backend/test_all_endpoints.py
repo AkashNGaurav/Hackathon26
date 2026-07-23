@@ -79,7 +79,83 @@ def test_all():
     res_dup = client.post("/api/auth/register", json=reg_payload)
     assert res_dup.status_code == 400
     print(f"[PASS] Duplicate User Registration -> Status: {res_dup.status_code} (400 Bad Request as expected)")
+
+    # --- USER LOGIN TESTS ---
+    print("\n--------------------------------------------------")
+    print("           TESTING USER LOGIN (AUTH)              ")
+    print("--------------------------------------------------")
+    
+    # Login with username
+    login_by_user = {"username": "finsight_user", "password": "StrongPassword123!"}
+    res_login_user = client.post("/api/auth/login", json=login_by_user)
+    assert res_login_user.status_code == 200
+    assert "access_token" in res_login_user.json()
+    print(f"[PASS] POST /api/auth/login (by username) -> Status: 200 OK")
+
+    # Login with email
+    login_by_email = {"username": "user@example.com", "password": "StrongPassword123!"}
+    res_login_email = client.post("/api/auth/login", json=login_by_email)
+    assert res_login_email.status_code == 200
+    assert "access_token" in res_login_email.json()
+    print(f"[PASS] POST /api/auth/login (by email) -> Status: 200 OK")
+
+    # Login with wrong password
+    login_bad_pwd = {"username": "finsight_user", "password": "WrongPassword!"}
+    res_login_bad = client.post("/api/auth/login", json=login_bad_pwd)
+    assert res_login_bad.status_code == 401
+    print(f"[PASS] Invalid Password Login -> Status: {res_login_bad.status_code} (401 Unauthorized as expected)")
+
+    # --- USER CRUD ENDPOINT TESTS ---
+    print("\n--------------------------------------------------")
+    print("          TESTING USER CRUD ENDPOINTS             ")
+    print("--------------------------------------------------")
+
+    created_user_id = reg_data["user"]["id"]
+
+    # 1. GET /api/users
+    res_users = client.get("/api/users")
+    assert res_users.status_code == 200
+    assert len(res_users.json()) >= 1
+    print(f"[PASS] GET /api/users -> Status: 200 OK, User count: {len(res_users.json())}")
+
+    # 2. GET /api/users/{user_id}
+    res_get_user = client.get(f"/api/users/{created_user_id}")
+    assert res_get_user.status_code == 200
+    assert res_get_user.json()["id"] == created_user_id
+    assert res_get_user.json()["username"] == "finsight_user"
+    print(f"[PASS] GET /api/users/{{id}} -> Status: 200 OK, Found username: {res_get_user.json()['username']}")
+
+    # 3. PUT /api/users/{user_id}
+    update_user_payload = {
+        "country": "France",
+        "kyc_completed": True
+    }
+    res_update_user = client.put(f"/api/users/{created_user_id}", json=update_user_payload)
+    assert res_update_user.status_code == 200
+    assert res_update_user.json()["country"] == "France"
+    assert res_update_user.json()["kyc_completed"] is True
+    print(f"[PASS] PUT /api/users/{{id}} -> Status: 200 OK, Updated country to France and kyc_completed to True")
+
+    # 4. DELETE /api/users/{user_id} (Create temp user to delete)
+    temp_user_req = {
+        "email": "temp_delete@example.com",
+        "username": "temp_delete_user",
+        "password": "Password123!",
+        "country": "UK"
+    }
+    res_temp = client.post("/api/auth/register", json=temp_user_req)
+    assert res_temp.status_code == 201
+    temp_id = res_temp.json()["user"]["id"]
+
+    res_del_user = client.delete(f"/api/users/{temp_id}")
+    assert res_del_user.status_code == 200
+    print(f"[PASS] DELETE /api/users/{{id}} -> Status: 200 OK, Deleted user {temp_id}")
+
+    res_get_deleted = client.get(f"/api/users/{temp_id}")
+    assert res_get_deleted.status_code == 404
+    print(f"[PASS] GET /api/users/{{id}} for deleted user -> Status: 404 Not Found")
     print("--------------------------------------------------\n")
+
 
 
     # 2. Recommendations

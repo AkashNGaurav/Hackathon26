@@ -56,8 +56,17 @@ class UserRegisterRequest(BaseModel):
 
 
 class UserLoginRequest(BaseModel):
-    username: str = Field(..., min_length=1, example="finsight_user")
+    username: str = Field(..., min_length=1, example="finsight_user", description="Username or email address")
     password: str = Field(..., min_length=1, example="StrongPassword123!")
+
+
+class UserUpdateRequest(BaseModel):
+    email: Optional[str] = Field(None, pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", example="user@example.com")
+    username: Optional[str] = Field(None, min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$", example="finsight_user")
+    password: Optional[str] = Field(None, min_length=6, max_length=100, example="NewStrongPassword123!")
+    country: Optional[str] = Field(None, max_length=100, example="Germany")
+    kyc_completed: Optional[bool] = Field(None, description="KYC verification status")
+
 
 
 class UserResponse(BaseModel):

@@ -18,10 +18,16 @@ from sqlalchemy import (
     ForeignKey,
     func,
 )
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.types import UUID
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
 
+@compiles(UUID, "sqlite")
+def compile_uuid_sqlite(type_, compiler, **kw):
+    return "VARCHAR(36)"
+
 Base = declarative_base()
+
 
 
 class ExpenseEntry(Base):

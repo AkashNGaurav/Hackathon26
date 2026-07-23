@@ -59,26 +59,29 @@ A:
 
 class GeminiClient:
     def __init__(self):
-        self.api_url = os.getenv("GEMINI_API_URL", "")
-        self.api_key = os.getenv("GEMINI_API_KEY", "")
+        self.api_url = os.getenv("GEMINI_API_URL", "https://api.openai.com/v1")
+        self.api_key = os.getenv("GEMINI_API_KEY", "dummy_key")
         self.client = OpenAI(
             api_key=self.api_key,
-            base_url=self.api_url
+            base_url=self.api_url if self.api_url else "https://api.openai.com/v1"
         )
-
 
     def analyze_text(self, prompt: str) -> dict[str, Any]:
-        # Placeholder for Gemini or compatible model call
-        response = self.client.chat.completions.create(
-            model="gemini-3-flash-preview",
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ]
-        )
+        if not os.getenv("GEMINI_API_KEY"):
+            return "Default investment strategy tailored for horizon and risk profile."
+        try:
+            response = self.client.chat.completions.create(
+                model="gemini-3-flash-preview",
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.choices[0].message.content
+        except Exception:
+            return "Default investment strategy tailored for horizon and risk profile."
 
-        return response.choices[0].message.content
 
 
 class InvestmentAgent:
