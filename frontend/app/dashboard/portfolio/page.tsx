@@ -118,6 +118,11 @@ export default function PortfolioPage() {
   const [modalSellError, setModalSellError] = useState<string | null>(null);
   const [modalSellSuccess, setModalSellSuccess] = useState<boolean>(false);
 
+  // AI Advice Execution State
+  const [executingAIAdvice, setExecutingAIAdvice] = useState<boolean>(false);
+  const [aiAdviceSuccessMsg, setAiAdviceSuccessMsg] = useState<string | null>(null);
+  const [aiAdviceError, setAiAdviceError] = useState<string | null>(null);
+
   // Fetch Wallet Balance
   const fetchWallet = async () => {
     try {
@@ -508,23 +513,78 @@ export default function PortfolioPage() {
             {aiScenario.description}
           </p>
 
+          {aiAdviceSuccessMsg && (
+            <FlowbiteAlert color="success" icon={CheckCircle2} className="text-xs font-semibold">
+              {aiAdviceSuccessMsg}
+            </FlowbiteAlert>
+          )}
+
+          {aiAdviceError && (
+            <FlowbiteAlert color="failure" icon={AlertCircle} className="text-xs font-semibold">
+              {aiAdviceError}
+            </FlowbiteAlert>
+          )}
+
           <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
             <div className="text-xs text-gray-500 font-medium">
               Target Asset: <span className="font-bold text-gray-900 dark:text-white">{aiScenario.targetAsset}</span>
             </div>
             <FlowbiteButton
               size="xs"
+              disabled={executingAIAdvice}
               className="bg-[#2f6b4f] hover:bg-[#255740] dark:bg-[#a7d48f] dark:text-[#090b0a] font-bold"
-              onClick={() => {
-                if (aiScenario.action === "BUY_MORE") {
-                  window.location.href = `/dashboard/mutual-funds`;
-                } else {
-                  const targetPos = positions.find(p => p.symbol === aiScenario.targetAsset) || positions[0];
-                  if (targetPos) openSellModal(targetPos);
+              onClick={async () => {
+                setExecutingAIAdvice(true);
+                setAiAdviceError(null);
+                setAiAdviceSuccessMsg(null);
+
+                const isBuy = aiScenario.action === "BUY_MORE";
+                const targetSymbol = aiScenario.targetAsset;
+                const qty = 2;
+
+                let pricePerUnit = 88.50;
+                try {
+                  const mktRes = await fetch(`http://localhost:8000/api/market/${targetSymbol}`);
+                  if (mktRes.ok) {
+                    const mktData = await mktRes.json();
+                    pricePerUnit = mktData.current_price || 88.50;
+                  }
+                } catch {
+                  // Fallback price
+                }
+
+                try {
+                  const res = await fetch("http://localhost:8000/api/trading/order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      symbol: targetSymbol,
+                      asset_name: targetSymbol === "MEUD.PA" ? "Amundi Stoxx Europe 600" : (targetSymbol === "MC.PA" ? "LVMH Moët Hennessy" : "European Portfolio Asset"),
+                      asset_type: isBuy ? "ETF" : "Stock",
+                      transaction_type: isBuy ? "BUY" : "SELL",
+                      order_type: "MARKET",
+                      quantity: qty,
+                      price_per_unit: pricePerUnit,
+                    }),
+                  });
+
+                  if (res.ok) {
+                    setAiAdviceSuccessMsg(`AI Advice executed successfully! ${isBuy ? "Bought" : "Sold"} ${qty} units of ${targetSymbol} at €${pricePerUnit.toFixed(2)}.`);
+                    fetchPortfolioData();
+                    fetchWallet();
+                    window.dispatchEvent(new Event("walletUpdated"));
+                  } else {
+                    const errData = await res.json();
+                    setAiAdviceError(errData.detail || "Failed to execute AI advice transaction.");
+                  }
+                } catch (err: any) {
+                  setAiAdviceError(err.message || "Network error while executing AI advice transaction.");
+                } finally {
+                  setExecutingAIAdvice(false);
                 }
               }}
             >
-              <Zap className="w-3.5 h-3.5 mr-1" /> Execute AI Advice
+              <Zap className="w-3.5 h-3.5 mr-1" /> {executingAIAdvice ? "Executing..." : "Execute AI Advice"}
             </FlowbiteButton>
           </div>
         </div>

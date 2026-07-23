@@ -1,5 +1,5 @@
 export type AuthUser = {
-  id?: number;
+  id?: string | number;
   username: string;
   email?: string;
   country?: string;
@@ -72,6 +72,19 @@ function createMockJwt(username: string): string {
   return `${header}.${payload}.${signature}`;
 }
 
+function formatErrorMessage(detail: unknown, defaultMsg: string): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail
+      .map((e: { msg?: string; message?: string }) => e.msg || e.message || JSON.stringify(e))
+      .join(", ");
+  }
+  if (detail && typeof detail === "object" && "message" in detail && typeof (detail as { message: unknown }).message === "string") {
+    return (detail as { message: string }).message;
+  }
+  return defaultMsg;
+}
+
 export async function registerUser(data: {
   email: string;
   username: string;
@@ -87,7 +100,8 @@ export async function registerUser(data: {
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ detail: "Registration failed" }));
-      throw new Error(errorData.detail || "Registration failed");
+      const msg = formatErrorMessage(errorData.detail, "Registration failed");
+      throw new Error(msg);
     }
 
     const authResult: AuthResponse = await res.json();
@@ -95,8 +109,12 @@ export async function registerUser(data: {
     setStoredUser(authResult.user);
     return authResult;
   } catch (err: unknown) {
-    // If local API fetch connection failed, handle fallback
-    if (err instanceof Error && err.message !== "Registration failed" && !err.message.includes("already registered")) {
+    // Re-throw explicit HTTP API responses (e.g. 400 User already exists or 422 Validation error)
+    if (err instanceof Error && err.name !== "TypeError" && !err.message.includes("fetch")) {
+      throw err;
+    }
+    // Offline / local storage fallback check ONLY on network fetch failure
+    if (err instanceof TypeError || (err instanceof Error && (err.name === "TypeError" || err.message.includes("fetch")))) {
       const mockToken = createMockJwt(data.username);
       const mockUser: AuthUser = {
         id: 1,
@@ -104,6 +122,7 @@ export async function registerUser(data: {
         email: data.email,
         country: data.country,
         kycCompleted: false,
+        kyc_completed: false,
       };
       setToken(mockToken);
       setStoredUser(mockUser);
@@ -125,8 +144,9 @@ export async function loginUser(data: {
     });
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({ detail: "Login failed" }));
-      throw new Error(errorData.detail || "Invalid credentials");
+      const errorData = await res.json().catch(() => ({ detail: "Invalid username or password" }));
+      const msg = formatErrorMessage(errorData.detail, "Invalid username or password");
+      throw new Error(msg);
     }
 
     const authResult: AuthResponse = await res.json();
@@ -134,10 +154,11 @@ export async function loginUser(data: {
     setStoredUser(authResult.user);
     return authResult;
   } catch (err: unknown) {
-    if (err instanceof Error && err.message === "Invalid credentials") {
+    // Re-throw explicit HTTP API responses (e.g. 401 Invalid username or password)
+    if (err instanceof Error && err.name !== "TypeError" && !err.message.includes("fetch")) {
       throw err;
     }
-    // Offline / local storage fallback check
+    // Offline / local storage fallback check ONLY on network fetch failure
     const storedUser = getStoredUser();
     if (storedUser && storedUser.username === data.username) {
       const mockToken = createMockJwt(data.username);

@@ -88,7 +88,7 @@ def execute_trade_order(
         if wallet.balance < total_cost:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient wallet balance (${wallet.balance:.2f}). Total cost is ${total_cost:.2f}. Please add funds to your wallet."
+                detail=f"Insufficient wallet balance (€{wallet.balance:.2f}). Total cost is €{total_cost:.2f}. Please add funds to your wallet."
             )
         # Deduct cost from user wallet
         wallet.balance -= total_cost

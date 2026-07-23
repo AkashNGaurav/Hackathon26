@@ -41,7 +41,10 @@ export interface AssetProfileData {
   business_summary?: string;
 }
 
-const DEFAULT_STOCKS = ["MC.PA", "ASML.AS", "VW.DE", "SAP.DE", "OR.PA"];
+const DEFAULT_STOCKS = [
+  "MC.PA", "ASML.AS", "VW.DE", "SAP.DE", "OR.PA", "AIR.PA",
+  "SIE.DE", "SAN.PA", "TTE.PA", "ALV.DE", "BNP.PA", "DTE.DE"
+];
 const PERIOD_OPTIONS = [
   { label: "1D", value: "1d" },
   { label: "5D", value: "5d" },
@@ -482,7 +485,7 @@ export default function StocksPage() {
               <TableHeadCell>Symbol / Name</TableHeadCell>
               <TableHeadCell>Exchange</TableHeadCell>
               <TableHeadCell>Current Price</TableHeadCell>
-              <TableHeadCell>Change ($)</TableHeadCell>
+              <TableHeadCell>Change (€)</TableHeadCell>
               <TableHeadCell>Change (%)</TableHeadCell>
               <TableHeadCell>Day Range</TableHeadCell>
               <TableHeadCell>Trade Action</TableHeadCell>
@@ -509,10 +512,10 @@ export default function StocksPage() {
                     </TableCell>
                     <TableCell className="text-xs text-gray-600 dark:text-gray-300">{stock.exchange}</TableCell>
                     <TableCell className="font-semibold text-gray-900 dark:text-white">
-                      ${stock.current_price} <span className="text-[10px] text-gray-400">{stock.currency}</span>
+                      €{stock.current_price} <span className="text-[10px] text-gray-400">{stock.currency}</span>
                     </TableCell>
                     <TableCell className={stock.is_positive ? "text-emerald-600 font-bold" : "text-red-600 font-bold"}>
-                      {stock.is_positive ? "+" : ""}{stock.price_change}
+                      {stock.is_positive ? "+" : ""}€{stock.price_change}
                     </TableCell>
                     <TableCell>
                       <Badge color={stock.is_positive ? "success" : "failure"} className="w-fit">
@@ -520,7 +523,7 @@ export default function StocksPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-gray-500">
-                      {stock.day_low && stock.day_high ? `$${stock.day_low} - $${stock.day_high}` : "N/A"}
+                      {stock.day_low && stock.day_high ? `€${stock.day_low} - €${stock.day_high}` : "N/A"}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <Button size="xs" color="purple" className="font-bold" onClick={() => openBuyModal(stock)}>

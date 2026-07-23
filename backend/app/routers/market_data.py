@@ -166,28 +166,142 @@ FALLBACK_EU_ASSETS = {
         "low": 75.60,
         "volume": 0,
     },
-    "VFIAX": {
-        "name": "Vanguard 500 Index Fund Admiral (EUR Hedged)",
+    "SIE.DE": {
+        "name": "Siemens AG",
+        "asset_type": "Stock",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 168.40,
+        "prev": 166.80,
+        "high": 170.10,
+        "low": 166.50,
+        "volume": 420000,
+    },
+    "SAN.PA": {
+        "name": "Sanofi S.A.",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 89.15,
+        "prev": 88.40,
+        "high": 89.80,
+        "low": 88.20,
+        "volume": 610000,
+    },
+    "TTE.PA": {
+        "name": "TotalEnergies SE",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 62.30,
+        "prev": 61.80,
+        "high": 62.90,
+        "low": 61.60,
+        "volume": 1150000,
+    },
+    "ALV.DE": {
+        "name": "Allianz SE",
+        "asset_type": "Stock",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 264.50,
+        "prev": 262.10,
+        "high": 266.00,
+        "low": 261.80,
+        "volume": 380000,
+    },
+    "BNP.PA": {
+        "name": "BNP Paribas S.A.",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 65.80,
+        "prev": 64.90,
+        "high": 66.30,
+        "low": 64.70,
+        "volume": 790000,
+    },
+    "DTE.DE": {
+        "name": "Deutsche Telekom AG",
+        "asset_type": "Stock",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 24.10,
+        "prev": 23.85,
+        "high": 24.30,
+        "low": 23.80,
+        "volume": 1820000,
+    },
+    "EXXT.DE": {
+        "name": "iShares NASDAQ 100 UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 985.20,
+        "nav": 985.10,
+        "prev": 978.40,
+        "high": 990.00,
+        "low": 976.00,
+        "volume": 410000,
+    },
+    "VAGF.DE": {
+        "name": "Vanguard Global Aggregate Bond UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 24.80,
+        "nav": 24.80,
+        "prev": 24.75,
+        "high": 24.90,
+        "low": 24.70,
+        "volume": 310000,
+    },
+    "SEGA.DE": {
+        "name": "iShares Euro Government Bond UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 122.40,
+        "nav": 122.35,
+        "prev": 122.00,
+        "high": 122.70,
+        "low": 121.90,
+        "volume": 250000,
+    },
+    "LU0996177134.PA": {
+        "name": "Amundi Index MSCI World UCITS Mutual Fund",
         "asset_type": "Mutual Fund",
         "exchange": "Euronext Paris",
         "currency": "EUR",
-        "price": 432.10,
-        "nav": 432.10,
-        "prev": 428.50,
-        "high": 433.00,
-        "low": 428.00,
+        "price": 488.10,
+        "nav": 488.10,
+        "prev": 483.50,
+        "high": 489.00,
+        "low": 483.00,
         "volume": 0,
     },
-    "VTSAX": {
-        "name": "Vanguard Total Stock Index Admiral (EUR Hedged)",
+    "FR0010149302.PA": {
+        "name": "BNP Paribas Euro Equity Mutual Fund",
         "asset_type": "Mutual Fund",
         "exchange": "Euronext Paris",
         "currency": "EUR",
-        "price": 118.50,
-        "nav": 118.50,
-        "prev": 117.20,
-        "high": 119.00,
-        "low": 117.00,
+        "price": 312.40,
+        "nav": 312.40,
+        "prev": 309.80,
+        "high": 313.50,
+        "low": 309.00,
+        "volume": 0,
+    },
+    "LU0251128657.PA": {
+        "name": "Carmignac Patrimoine Euro Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 642.50,
+        "nav": 642.50,
+        "prev": 638.00,
+        "high": 644.00,
+        "low": 637.50,
         "volume": 0,
     },
 }
@@ -211,9 +325,27 @@ def normalize_eu_symbol(symbol: str, exchange: Optional[str] = None) -> tuple[st
     return clean_sym, ex_name
 
 
+def is_eu_market_open(market_state: Optional[str] = None) -> str:
+    """Evaluates real-time European market open/close status based on state & trading hours (08:00 to 16:30 UTC Mon-Fri)."""
+    if market_state:
+        m_state = market_state.upper()
+        if m_state == "REGULAR":
+            return "OPEN"
+        elif m_state in ["CLOSED", "POST", "PRE"]:
+            return "CLOSED"
+    
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    if now_utc.weekday() < 5:
+        hour_min = now_utc.hour + now_utc.minute / 60.0
+        if 8.0 <= hour_min <= 16.5:
+            return "OPEN"
+    return "CLOSED"
+
+
 @router.get("/{symbol}", response_model=schemas.AssetDataResponse)
 def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
-    """Fetch live or fallback market data for EU Stocks, ETFs, and Mutual Funds."""
+    """Fetch live or fallback market data for EU Stocks, ETFs, and Mutual Funds in EUR."""
     clean_sym, default_exchange_name = normalize_eu_symbol(symbol, exchange)
 
     # Try fetching with yfinance
@@ -224,14 +356,27 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
         info = ticker.info
 
         if info and ("currentPrice" in info or "regularMarketPrice" in info or "navPrice" in info):
-            price = (
+            raw_price = (
                 info.get("currentPrice")
                 or info.get("regularMarketPrice")
                 or info.get("navPrice")
                 or info.get("previousClose")
             )
-            prev_close = info.get("previousClose") or price
+            raw_prev = info.get("previousClose") or raw_price
             quote_type = info.get("quoteType", "").upper()
+            curr = info.get("currency", "EUR").upper()
+
+            # Convert GBp (pence), GBP, or USD to EUR for European consistency
+            fx_rate = 1.0
+            if curr == "GBP":
+                fx_rate = 1.18
+            elif curr == "GBP":
+                fx_rate = 0.0118  # GBp pence to EUR
+            elif curr == "USD":
+                fx_rate = 0.92
+
+            price = round(float(raw_price) * fx_rate, 2)
+            prev_close = round(float(raw_prev) * fx_rate, 2)
 
             if quote_type == "MUTUALFUND":
                 asset_type = "Mutual Fund"
@@ -241,26 +386,29 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
                 asset_type = "Stock"
 
             nav_val = info.get("navPrice") or (price if asset_type in ["Mutual Fund", "ETF"] else None)
+            if nav_val is not None and curr in ["GBP", "GBp", "USD"]:
+                nav_val = round(float(nav_val) * fx_rate, 2)
 
             price_change = round(price - prev_close, 2)
             pct_change = round((price_change / prev_close) * 100, 2) if prev_close else 0.0
+            mkt_status = is_eu_market_open(info.get("marketState") or info.get("regularMarketState"))
 
             return schemas.AssetDataResponse(
                 symbol=clean_sym,
                 name=info.get("shortName") or info.get("longName") or clean_sym,
                 asset_type=asset_type,
                 exchange=info.get("exchange") or default_exchange_name,
-                currency=info.get("currency", "EUR"),
-                current_price=round(float(price), 2),
+                currency="EUR",
+                current_price=price,
                 nav=round(float(nav_val), 2) if nav_val is not None else None,
-                previous_close=round(float(prev_close), 2) if prev_close else None,
-                day_high=round(float(info.get("dayHigh")), 2) if info.get("dayHigh") else None,
-                day_low=round(float(info.get("dayLow")), 2) if info.get("dayLow") else None,
+                previous_close=prev_close,
+                day_high=round(float(info.get("dayHigh")) * fx_rate, 2) if info.get("dayHigh") else None,
+                day_low=round(float(info.get("dayLow")) * fx_rate, 2) if info.get("dayLow") else None,
                 volume=info.get("volume"),
                 price_change=price_change,
                 percentage_change=pct_change,
                 is_positive=price_change >= 0,
-                market_status="OPEN",
+                market_status=mkt_status,
             )
     except Exception as err:
         logger.warning(f"yfinance fetch failed for {clean_sym}: {err}. Falling back to cached asset metrics.")
@@ -277,7 +425,7 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
             name=data["name"],
             asset_type=data["asset_type"],
             exchange=data["exchange"],
-            currency=data["currency"],
+            currency="EUR",
             current_price=price,
             nav=data.get("nav"),
             previous_close=prev,
@@ -287,7 +435,7 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
             price_change=change,
             percentage_change=pct,
             is_positive=change >= 0,
-            market_status="OPEN",
+            market_status=is_eu_market_open(),
         )
 
     # Generic fallback if symbol unknown
@@ -306,7 +454,7 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
         price_change=1.50,
         percentage_change=1.01,
         is_positive=True,
-        market_status="OPEN",
+        market_status=is_eu_market_open(),
     )
 
 

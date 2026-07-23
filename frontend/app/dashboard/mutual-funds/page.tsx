@@ -68,7 +68,10 @@ export interface AssetProfileData {
   fund_family?: string;
 }
 
-const DEFAULT_MFS = ["VUAA.L", "IWDA.AS", "MEUD.PA", "VFIAX", "VTSAX"];
+const DEFAULT_MFS = [
+  "C3M.PA", "EUEA.PA", "VUAA.L", "IWDA.AS", "MEUD.PA",
+  "LU0996177134.PA", "FR0010149302.PA", "LU0251128657.PA"
+];
 const PERIOD_OPTIONS = [
   { label: "1D", value: "1d" },
   { label: "5D", value: "5d" },
@@ -600,7 +603,7 @@ function MutualFundContent() {
               <TableHeadCell>Symbol / Name</TableHeadCell>
               <TableHeadCell>Exchange</TableHeadCell>
               <TableHeadCell>NAV / Price</TableHeadCell>
-              <TableHeadCell>Change ($)</TableHeadCell>
+              <TableHeadCell>Change (€)</TableHeadCell>
               <TableHeadCell>Change (%)</TableHeadCell>
               <TableHeadCell>Day Range</TableHeadCell>
               <TableHeadCell>Invest Options</TableHeadCell>
@@ -633,10 +636,10 @@ function MutualFundContent() {
                     </TableCell>
                     <TableCell className="text-xs text-gray-600 dark:text-gray-300">{stock.exchange}</TableCell>
                     <TableCell className="font-semibold text-gray-900 dark:text-white">
-                      ${stock.current_price} <span className="text-[10px] text-gray-400">{stock.currency}</span>
+                      €{stock.current_price} <span className="text-[10px] text-gray-400">{stock.currency}</span>
                     </TableCell>
                     <TableCell className={stock.is_positive ? "text-emerald-600 font-bold" : "text-red-600 font-bold"}>
-                      {stock.is_positive ? "+" : ""}{stock.price_change}
+                      {stock.is_positive ? "+" : ""}€{stock.price_change}
                     </TableCell>
                     <TableCell>
                       <Badge color={stock.is_positive ? "success" : "failure"} className="w-fit">
@@ -644,7 +647,7 @@ function MutualFundContent() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-xs text-gray-500">
-                      {stock.day_low && stock.day_high ? `$${stock.day_low} - $${stock.day_high}` : "N/A"}
+                      {stock.day_low && stock.day_high ? `€${stock.day_low} - €${stock.day_high}` : "N/A"}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-2">

@@ -49,23 +49,26 @@ export interface AIRecommendationResult {
 }
 
 const COMPREHENSIVE_TICKERS = [
-  // Major Stocks
-  "AAPL", "MSFT", "NVDA", "MC.PA", "ASML.AS",
-  // Popular ETFs
-  "SPY", "QQQ", "VOO", "VUAA.L",
-  // Top Mutual Funds
-  "VFIAX", "VTSAX", "FXAIX"
+  // European Stocks
+  "MC.PA", "ASML.AS", "VW.DE", "SAP.DE", "OR.PA", "AIR.PA",
+  // European ETFs
+  "VUAA.L", "IWDA.AS", "MEUD.PA",
+  // European Mutual Funds
+  "C3M.PA", "EUEA.PA"
 ];
 
 const INITIAL_FALLBACK_DATA: EUAssetItem[] = [
-  { symbol: "AAPL", name: "Apple Inc.", asset_type: "Stock", exchange: "NASDAQ", currency: "USD", current_price: 224.50, price_change: 3.20, percentage_change: 1.45, is_positive: true, market_status: "OPEN" },
-  { symbol: "MSFT", name: "Microsoft Corporation", asset_type: "Stock", exchange: "NASDAQ", currency: "USD", current_price: 448.90, price_change: 5.10, percentage_change: 1.15, is_positive: true, market_status: "OPEN" },
-  { symbol: "SPY", name: "SPDR S&P 500 ETF Trust", asset_type: "ETF", exchange: "NYSE Arca", currency: "USD", current_price: 552.30, price_change: 2.10, percentage_change: 0.38, is_positive: true, market_status: "OPEN" },
-  { symbol: "QQQ", name: "Invesco QQQ Trust", asset_type: "ETF", exchange: "NASDAQ", currency: "USD", current_price: 480.10, price_change: -1.40, percentage_change: -0.29, is_positive: false, market_status: "OPEN" },
-  { symbol: "VFIAX", name: "Vanguard 500 Index Fund Admiral", asset_type: "Mutual Fund", exchange: "US Mutual", currency: "USD", current_price: 512.60, price_change: 2.80, percentage_change: 0.55, is_positive: true, market_status: "OPEN" },
-  { symbol: "VTSAX", name: "Vanguard Total Stock Market Index", asset_type: "Mutual Fund", exchange: "US Mutual", currency: "USD", current_price: 128.40, price_change: 0.70, percentage_change: 0.55, is_positive: true, market_status: "OPEN" },
   { symbol: "MC.PA", name: "LVMH Moët Hennessy Louis Vuitton", asset_type: "Stock", exchange: "Euronext Paris", currency: "EUR", current_price: 718.40, price_change: 8.60, percentage_change: 1.21, is_positive: true, market_status: "OPEN" },
   { symbol: "ASML.AS", name: "ASML Holding N.V.", asset_type: "Stock", exchange: "Euronext Amsterdam", currency: "EUR", current_price: 842.10, price_change: 10.60, percentage_change: 1.27, is_positive: true, market_status: "OPEN" },
+  { symbol: "VW.DE", name: "Volkswagen AG Preference", asset_type: "Stock", exchange: "XETRA Germany", currency: "EUR", current_price: 96.55, price_change: -0.85, percentage_change: -0.87, is_positive: false, market_status: "OPEN" },
+  { symbol: "SAP.DE", name: "SAP SE", asset_type: "Stock", exchange: "XETRA Germany", currency: "EUR", current_price: 194.80, price_change: 2.40, percentage_change: 1.25, is_positive: true, market_status: "OPEN" },
+  { symbol: "OR.PA", name: "L'Oréal S.A.", asset_type: "Stock", exchange: "Euronext Paris", currency: "EUR", current_price: 388.50, price_change: 3.30, percentage_change: 0.86, is_positive: true, market_status: "OPEN" },
+  { symbol: "AIR.PA", name: "Airbus SE", asset_type: "Stock", exchange: "Euronext Paris", currency: "EUR", current_price: 134.60, price_change: 1.50, percentage_change: 1.13, is_positive: true, market_status: "OPEN" },
+  { symbol: "VUAA.L", name: "Vanguard S&P 500 UCITS ETF (EUR)", asset_type: "ETF", exchange: "London Stock Exchange", currency: "EUR", current_price: 94.25, price_change: 0.65, percentage_change: 0.69, is_positive: true, market_status: "OPEN" },
+  { symbol: "IWDA.AS", name: "iShares Core MSCI World UCITS ETF (EUR)", asset_type: "ETF", exchange: "Euronext Amsterdam", currency: "EUR", current_price: 88.50, price_change: 0.60, percentage_change: 0.68, is_positive: true, market_status: "OPEN" },
+  { symbol: "MEUD.PA", name: "Amundi Stoxx Europe 600 UCITS ETF (EUR)", asset_type: "ETF", exchange: "Euronext Paris", currency: "EUR", current_price: 412.30, price_change: 1.80, percentage_change: 0.44, is_positive: true, market_status: "OPEN" },
+  { symbol: "C3M.PA", name: "Amundi EUR Cash UCITS Mutual Fund", asset_type: "Mutual Fund", exchange: "Euronext Paris", currency: "EUR", current_price: 105.40, price_change: 0.05, percentage_change: 0.05, is_positive: true, market_status: "OPEN" },
+  { symbol: "EUEA.PA", name: "iShares MSCI Europe UCITS Mutual Fund", asset_type: "Mutual Fund", exchange: "Euronext Paris", currency: "EUR", current_price: 76.20, price_change: 0.40, percentage_change: 0.53, is_positive: true, market_status: "OPEN" },
 ];
 
 export function EUMarketTable() {
