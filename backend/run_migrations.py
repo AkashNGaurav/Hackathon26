@@ -9,13 +9,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 def run_alembic_upgrade():
     alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
     
-    # Stamp head if tables already exist, otherwise upgrade
     try:
-        print("Stamping Alembic revision to 'head'...")
-        command.stamp(alembic_cfg, "head")
-        print("Alembic database successfully stamped to 'head'!")
+        print("Upgrading Alembic migrations to 'head'...")
+        command.upgrade(alembic_cfg, "head")
+        print("Alembic database successfully upgraded to 'head'!")
     except Exception as e:
-        print(f"Error stamping alembic: {e}")
+        print(f"Upgrade failed, stamping Alembic revision to 'head': {e}")
+        try:
+            command.stamp(alembic_cfg, "head")
+            print("Alembic database successfully stamped to 'head'!")
+        except Exception as stamp_err:
+            print(f"Error stamping alembic: {stamp_err}")
+
 
 if __name__ == "__main__":
     run_alembic_upgrade()
+
