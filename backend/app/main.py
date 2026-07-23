@@ -50,6 +50,79 @@ def register_user(user_data: schemas.UserRegisterRequest, db: Session = Depends(
     )
 
 
+@app.post("/api/auth/login", response_model=schemas.AuthTokenResponse)
+def login_user(credentials: schemas.UserLoginRequest, db: Session = Depends(get_db)):
+    from app.auth_utils import create_access_token
+    user = crud.authenticate_user(db, username=credentials.username, password=credentials.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = create_access_token(user_id=user.id, username=user.username, email=user.email)
+    return schemas.AuthTokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=user
+    )
+
+
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> models.User:
+    from app.auth_utils import decode_access_token
+    token = credentials.credentials
+    try:
+        payload = decode_access_token(token)
+        user_id_str = payload.get("user_id")
+        if not user_id_str:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token claims")
+        user_uuid = uuid.UUID(user_id_str)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user = crud.get_user_by_id(db, user_uuid)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
+@app.get("/api/auth/me", response_model=schemas.UserResponse)
+def get_current_user_profile(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+
+@app.put("/api/auth/me/kyc", response_model=schemas.KYCUpdateResponse)
+def update_kyc_status(
+    kyc_data: schemas.KYCUpdateRequest,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    updated_user = crud.update_user_kyc(db, current_user, kyc_data.kyc_completed)
+    return schemas.KYCUpdateResponse(
+        id=updated_user.id,
+        email=updated_user.email,
+        username=updated_user.username,
+        country=updated_user.country,
+        kyc_completed=updated_user.kyc_completed,
+        message="KYC status updated successfully"
+    )
+
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 def get_recommendations(
