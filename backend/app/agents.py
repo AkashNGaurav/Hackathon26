@@ -1,3 +1,6 @@
+from uuid import UUID
+from app.depends import get_model_provider
+from app.services.model_provider import ChatModelProvider
 import os
 import json
 import logging
@@ -121,7 +124,7 @@ class EuropeanMarketChatAgent:
         # Do not cache this agent: db is a request-scoped SQLAlchemy Session.
         self.client = client or get_gemini_client()
 
-    def reply(self, message: str, session_id: str | None = None) -> dict[str, str]:
+    def reply(self, message: str, session_id: str | None = None, user_id: UUID=None) -> dict[str, str]:
         session_id = session_id or str(uuid4())
         history = crud.get_agent_checkpoints(self.db, session_id, self.agent_type)
         messages = [{"role": item.role, "content": item.content} for item in history]
@@ -129,7 +132,7 @@ class EuropeanMarketChatAgent:
         crud.create_agent_checkpoint(self.db, session_id, self.agent_type, "user", message)
 
         try:
-            reply = self.client.chat(self.system_prompt, messages)
+            reply = self.client.chat(self.system_prompt, messages, user_id=str(user_id))
         except (APIError, RuntimeError):
             logger.warning("AI provider unavailable for %s agent", self.agent_type, exc_info=True)
             reply = "The specialist agent is temporarily unavailable. Please configure the AI provider and try again."
@@ -186,7 +189,7 @@ class InvestmentAgent:
             f" with a {investment_horizon}-year horizon in Europe."
         )
         try:
-            analysis = self.client.analyze_text(prompt)
+            analysis = self.client.analyze_text(prompt, user_id="")
         except (APIError, RuntimeError, json.JSONDecodeError):
             logger.warning("AI provider unavailable for investment recommendation", exc_info=True)
             return (

@@ -14,6 +14,9 @@ venv/
 fintech.db
 backend/*.db
 backend/fintech.db
+.DS_Store
+*/.DS_Store
+../.DS_Store
 
 
 # Node

@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import uuid
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
 from app.conf.config import services
@@ -14,6 +15,8 @@ from app.depends import get_db, get_llm, get_model_provider
 from contextlib import asynccontextmanager
 from app.routers import market_data, ai_advisor
 from app import models, schemas, crud, agents, auth, db as db_module
+
+security = HTTPBearer()
 
 load_dotenv()
 
@@ -61,6 +64,35 @@ def get_db():
         db.close()
 
 
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> models.User:
+    from app.auth_utils import decode_access_token
+    token = credentials.credentials
+    try:
+        payload = decode_access_token(token)
+        user_id_str = payload.get("user_id")
+        if not user_id_str:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token claims")
+        user_uuid = uuid.UUID(user_id_str)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user = crud.get_user_by_id(db, user_uuid)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
 @app.exception_handler(SQLAlchemyError)
 async def database_exception_handler(request: Request, exc: SQLAlchemyError):
     logger.exception("Database request failed: %s %s", request.method, request.url.path)
@@ -76,23 +108,23 @@ def health():
 
 
 @app.post("/api/chat/mutual-funds", response_model=schemas.ChatResponse)
-def chat_mutual_funds(request: schemas.ChatRequest, db: Session = Depends(get_db)):
-    return agents.MutualFundAgent(db).reply(request.message, request.session_id)
+def chat_mutual_funds(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return agents.MutualFundAgent(db).reply(request.message, request.session_id, current_user.id)
 
 
 @app.post("/api/chat/etfs", response_model=schemas.ChatResponse)
-def chat_etfs(request: schemas.ChatRequest, db: Session = Depends(get_db)):
-    return agents.EtfAgent(db).reply(request.message, request.session_id)
+def chat_etfs(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return agents.EtfAgent(db).reply(request.message, request.session_id, current_user.id)
 
 
 @app.post("/api/chat/stocks", response_model=schemas.ChatResponse)
-def chat_stocks(request: schemas.ChatRequest, db: Session = Depends(get_db)):
-    return agents.StockAgent(db).reply(request.message, request.session_id)
+def chat_stocks(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return agents.StockAgent(db).reply(request.message, request.session_id, current_user.id)
 
 
 @app.post("/api/chat/investment-advisor", response_model=schemas.ChatResponse)
-def chat_investment_advisor(request: schemas.ChatRequest, db: Session = Depends(get_db)):
-    return agents.InvestmentAdvisorAgent(db).reply(request.message, request.session_id)
+def chat_investment_advisor(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return agents.InvestmentAdvisorAgent(db).reply(request.message, request.session_id, current_user.id)
 
 # --- Auth Endpoints ---
 
@@ -138,40 +170,6 @@ def login_user(credentials: schemas.UserLoginRequest, db: Session = Depends(get_
         token_type="bearer",
         user=user
     )
-
-
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-security = HTTPBearer()
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
-) -> models.User:
-    from app.auth_utils import decode_access_token
-    token = credentials.credentials
-    try:
-        payload = decode_access_token(token)
-        user_id_str = payload.get("user_id")
-        if not user_id_str:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token claims")
-        user_uuid = uuid.UUID(user_id_str)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    user = crud.get_user_by_id(db, user_uuid)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
 
 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
