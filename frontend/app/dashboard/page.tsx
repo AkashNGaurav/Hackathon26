@@ -7,6 +7,7 @@ import MarketNewsFeed from "@/components/MarketNewsFeed";
 import PortfolioNewsTicker from "@/components/PortfolioNewsTicker";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import EUMarketTable from "@/components/EUMarketTable";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -43,10 +44,17 @@ export default function DashboardPage() {
 
       <main className="flex-1 p-6 md:p-8">
         <div className="mx-auto max-w-7xl space-y-8">
+          {/* AI Market Insight Summary */}
           <section id="market-insights">
             <MarketInsightCard />
           </section>
 
+          {/* Live EU Market Assets Table */}
+          <section id="eu-markets">
+            <EUMarketTable />
+          </section>
+
+          {/* Market News Feed & Grid */}
           <section id="market-news">
             <MarketNewsFeed />
           </section>
