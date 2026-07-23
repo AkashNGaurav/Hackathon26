@@ -10,10 +10,12 @@ from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
 from app.conf.config import services
-from app.depends import get_db, get_llm
+from app.depends import get_db, get_llm, get_model_provider
 from contextlib import asynccontextmanager
 from app.routers import market_data, ai_advisor
 from app import models, schemas, crud, agents, auth, db as db_module
+
+load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -199,7 +201,7 @@ def get_recommendations(
     risk_profile: str = Query("moderate", pattern="^(low|moderate|high)$"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
-    llm: "OpenAI" = Depends(get_llm),
+    llm: ChatModelProvider = Depends(get_model_provider)
 ):
     agent = agents.InvestmentAgent(db, llm)
     recommendation = agent.recommend(risk_profile=risk_profile, investment_horizon=investment_horizon)
