@@ -2,12 +2,28 @@ from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
+from app.conf.config import services
+from app.depends import get_db, get_llm
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="Fintech AI Assistant")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager.
+    Runs once on startup and once on shutdown.
+    """
+    app.state.services = services
+    await services.initialize()
+    yield
+
+app = FastAPI(title="FinSight AI Assistant",
+description="API for querying and managing FinSight AI Application",
+lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"] ,
     allow_headers=["*"] ,
@@ -16,26 +32,19 @@ app.add_middleware(
 models.Base.metadata.create_all(bind=db_module.engine)
 
 
-def get_db():
-    db = db_module.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @app.get("/api/health")
 def health():
     return {"status": "ok", "message": "AI fintech backend running"}
 
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
-def get_recommendations(
+async def get_recommendations(
     risk_profile: str = Query("moderate", regex="^(low|moderate|high)$"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
+    llm: "OpenAI" = Depends(get_llm),
 ):
-    agent = agents.InvestmentAgent(db)
+    agent = agents.InvestmentAgent(db, llm)
     recommendation = agent.recommend(risk_profile=risk_profile, investment_horizon=investment_horizon)
     return recommendation
 
