@@ -132,7 +132,7 @@ export default function ETFPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLiveMode, setIsLiveMode] = useState(true);
-  
+
   // Expandable Row State
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [chartType, setChartType] = useState<"line" | "candlestick">("line");
@@ -251,7 +251,7 @@ export default function ETFPage() {
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    
+
     if (etfs.some(s => s.symbol.toUpperCase() === searchQuery.toUpperCase())) {
       setSearchQuery("");
       return;
@@ -281,7 +281,7 @@ export default function ETFPage() {
       return;
     }
     setExpandedRow(symbol);
-    
+
     if (!historyData[symbol] || !profileData[symbol]) {
       setDetailsLoading(prev => ({ ...prev, [symbol]: true }));
       try {
@@ -289,7 +289,7 @@ export default function ETFPage() {
           fetch(`http://localhost:8000/api/market/${symbol}/history?period=${selectedPeriod}`),
           fetch(`http://localhost:8000/api/market/${symbol}/profile`)
         ]);
-        
+
         if (histRes.ok && profRes.ok) {
           const hist = await histRes.json();
           const prof = await profRes.json();
@@ -372,11 +372,11 @@ export default function ETFPage() {
 
   const { etfOfTheDay, topGainers, topLosers } = useMemo(() => {
     if (etfs.length === 0) return { etfOfTheDay: null, topGainers: [], topLosers: [] };
-    
+
     const sorted = [...etfs].sort((a, b) => b.percentage_change - a.percentage_change);
     const gainers = sorted.filter(s => s.is_positive).slice(0, 3);
     const losers = [...etfs].filter(s => !s.is_positive).sort((a, b) => a.percentage_change - b.percentage_change).slice(0, 3);
-    
+
     return {
       etfOfTheDay: sorted[0],
       topGainers: gainers,
@@ -397,11 +397,10 @@ export default function ETFPage() {
         {/* Live Market Toggle */}
         <Button
           onClick={() => setIsLiveMode(!isLiveMode)}
-          className={`flex items-center gap-2 rounded-full px-4 py-1.5 transition-all text-xs font-bold ${
-            isLiveMode 
-              ? "bg-emerald-600 text-white dark:bg-emerald-500 animate-pulse" 
+          className={`flex items-center gap-2 rounded-full px-4 py-1.5 transition-all text-xs font-bold ${isLiveMode
+              ? "bg-emerald-600 text-white dark:bg-emerald-500 animate-pulse"
               : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-          }`}
+            }`}
         >
           <Activity className="w-4 h-4" />
           {isLiveMode ? "LIVE UPDATES ACTIVE (0.5s)" : "Enable Live Mode (0.5s)"}
@@ -515,7 +514,7 @@ export default function ETFPage() {
             ) : (
               etfs.map((stock) => (
                 <React.Fragment key={stock.symbol}>
-                  <TableRow 
+                  <TableRow
                     onClick={() => handleRowClick(stock.symbol)}
                     className="cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                   >
@@ -564,11 +563,10 @@ export default function ETFPage() {
                                     <button
                                       key={period.value}
                                       onClick={() => handlePeriodChange(stock.symbol, period.value)}
-                                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                                        selectedPeriod === period.value
+                                      className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${selectedPeriod === period.value
                                           ? "bg-white dark:bg-gray-700 text-[#2f6b4f] dark:text-[#a7d48f] shadow-sm"
                                           : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                                      }`}
+                                        }`}
                                     >
                                       {period.label}
                                     </button>
@@ -578,21 +576,19 @@ export default function ETFPage() {
                                 <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                   <button
                                     onClick={() => setChartType("line")}
-                                    className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                                      chartType === "line"
+                                    className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition-all ${chartType === "line"
                                         ? "bg-white dark:bg-gray-700 text-[#2f6b4f] dark:text-[#a7d48f] shadow-sm"
                                         : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                                    }`}
+                                      }`}
                                   >
                                     <TrendingUp className="w-3.5 h-3.5" /> Line
                                   </button>
                                   <button
                                     onClick={() => setChartType("candlestick")}
-                                    className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition-all ${
-                                      chartType === "candlestick"
+                                    className={`flex items-center gap-1 px-3 py-1 text-xs font-bold rounded-md transition-all ${chartType === "candlestick"
                                         ? "bg-white dark:bg-gray-700 text-[#2f6b4f] dark:text-[#a7d48f] shadow-sm"
                                         : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                                    }`}
+                                      }`}
                                   >
                                     <BarChart2 className="w-3.5 h-3.5" /> Candlestick
                                   </button>
@@ -607,14 +603,14 @@ export default function ETFPage() {
                                         <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
                                         <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                                         <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10 }} />
-                                        <Tooltip 
+                                        <Tooltip
                                           contentStyle={{ backgroundColor: '#1f2937', color: '#fff', borderRadius: '8px', border: 'none' }}
                                           formatter={(val: any) => [`$${val}`, 'NAV Price']}
                                         />
-                                        <Line 
-                                          type="monotone" 
-                                          dataKey="price" 
-                                          stroke={stock.is_positive ? "#10b981" : "#ef4444"} 
+                                        <Line
+                                          type="monotone"
+                                          dataKey="price"
+                                          stroke={stock.is_positive ? "#10b981" : "#ef4444"}
                                           strokeWidth={2}
                                           dot={false}
                                         />
@@ -638,7 +634,7 @@ export default function ETFPage() {
                                   <Briefcase className="w-4 h-4 text-[#2f6b4f] dark:text-[#a7d48f]" />
                                   Fund Profile & Metrics
                                 </h4>
-                                
+
                                 {profileData[stock.symbol] ? (
                                   <div className="space-y-3 text-xs">
                                     <div className="grid grid-cols-2 gap-2">
@@ -649,8 +645,8 @@ export default function ETFPage() {
                                       <div>
                                         <span className="text-gray-400">Total Assets</span>
                                         <p className="font-semibold text-gray-800 dark:text-gray-200">
-                                          {profileData[stock.symbol].total_assets 
-                                            ? `$${(profileData[stock.symbol].total_assets! / 1e9).toFixed(2)}B` 
+                                          {profileData[stock.symbol].total_assets
+                                            ? `$${(profileData[stock.symbol].total_assets! / 1e9).toFixed(2)}B`
                                             : "N/A"}
                                         </p>
                                       </div>

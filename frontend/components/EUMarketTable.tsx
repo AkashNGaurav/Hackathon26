@@ -258,11 +258,10 @@ export function EUMarketTable() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
-                activeTab === tab
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === tab
                   ? "bg-white dark:bg-gray-700 text-[#2f6b4f] dark:text-[#a7d48f] shadow-sm"
                   : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-              }`}
+                }`}
             >
               {tab === "All" ? "All Assets" : `${tab}s`}
             </button>

@@ -419,9 +419,8 @@ export default function PortfolioPage() {
             )}
           </div>
           <div
-            className={`mt-3 text-2xl sm:text-3xl font-black flex items-center gap-1 ${
-              totalUnrealizedPnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"
-            }`}
+            className={`mt-3 text-2xl sm:text-3xl font-black flex items-center gap-1 ${totalUnrealizedPnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"
+              }`}
           >
             €{Math.abs(totalUnrealizedPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             <span className="text-xs font-bold ml-1">
@@ -798,8 +797,8 @@ export default function PortfolioPage() {
                             pos.asset_type === "Mutual Fund"
                               ? "success"
                               : pos.asset_type === "ETF"
-                              ? "info"
-                              : "purple"
+                                ? "info"
+                                : "purple"
                           }
                           className="w-fit font-bold text-[10px]"
                         >
@@ -821,9 +820,8 @@ export default function PortfolioPage() {
                       <TableCell>
                         <div className="font-bold text-gray-900 dark:text-white">€{currentPrice.toFixed(2)}</div>
                         <div
-                          className={`text-[10px] font-semibold flex items-center gap-0.5 ${
-                            isDayPos ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"
-                          }`}
+                          className={`text-[10px] font-semibold flex items-center gap-0.5 ${isDayPos ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"
+                            }`}
                         >
                           {isDayPos ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                           <span>
@@ -896,8 +894,8 @@ export default function PortfolioPage() {
                             pos.asset_type === "Mutual Fund"
                               ? "success"
                               : pos.asset_type === "ETF"
-                              ? "info"
-                              : "purple"
+                                ? "info"
+                                : "purple"
                           }
                           className="text-[9px]"
                         >
@@ -927,9 +925,8 @@ export default function PortfolioPage() {
                       <span className="text-[10px] text-gray-500 block">Live Price / NAV</span>
                       <div className="font-bold text-gray-900 dark:text-white">€{currentPrice.toFixed(2)}</div>
                       <span
-                        className={`text-[9px] font-semibold ${
-                          isDayPos ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"
-                        }`}
+                        className={`text-[9px] font-semibold ${isDayPos ? "text-emerald-600 dark:text-emerald-400" : "text-red-600"
+                          }`}
                       >
                         {isDayPos ? "+" : ""}
                         {dayChange.toFixed(2)} ({isDayPos ? "+" : ""}

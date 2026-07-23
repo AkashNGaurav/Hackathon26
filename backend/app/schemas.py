@@ -44,12 +44,15 @@ class TokenData(BaseModel):
 class KYCUpdateSchema(BaseModel):
     kyc_completed: bool = True
 
+class KYCUpdateResponse(UserResponse):
+    message: str = "KYC status updated successfully"
+
 
 class ExpenseEntryBase(BaseModel):
-    category: str = Field(..., example="Investment")
-    amount: float = Field(..., example=1200.50)
-    currency: str = Field("EUR", example="EUR")
-    description: Optional[str] = Field(None, example="Monthly stock purchase")
+    category: str = Field(..., min_length=1, max_length=100, example="Investment")
+    amount: float = Field(..., gt=0, example=1200.50, description="Amount must be greater than 0")
+    currency: str = Field("EUR", min_length=3, max_length=3, pattern=r"^[A-Z]{3}$", example="EUR", description="ISO 4217 currency code")
+    description: Optional[str] = Field(None, max_length=500, example="Monthly stock purchase")
 
 
 class ExpenseEntryCreate(ExpenseEntryBase):
@@ -61,6 +64,7 @@ class ExpenseEntryResponse(ExpenseEntryBase):
     created_at: datetime
 
     class Config:
+        from_attributes = True
         from_attributes = True
 
 
@@ -83,6 +87,16 @@ class SentimentResponse(BaseModel):
     confidence: float
     news_insights: list[SentimentNewsItem]
 
+class ChatRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=4000, examples=["How should I invest for five years?"])
+    session_id: Optional[str] = Field(None, min_length=1, max_length=64, examples=["c0a801f3-8a07-4f72-8e72-928d36e389e2"])
+
+
+class ChatResponse(BaseModel):
+    reply: str
+    step: str = "OUTPUT"
+    session_id: str
+    agent: Literal["mutual_fund", "etf", "stock", "investment_advisor"]
 
 class LLMConfig:
 

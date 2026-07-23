@@ -3,13 +3,18 @@ import uuid
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
+import uuid
+from typing import Optional
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
 from routes import ai_advisor, market_data, trading
 from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
 from app.conf.config import services
 from app.depends import get_db, get_llm, get_model_provider
-from app.services.model_provider import ChatModelProvider
 from contextlib import asynccontextmanager
+from app.routers import market_data, ai_advisor
+from app import models, schemas, crud, agents, auth, db as db_module
 
 load_dotenv()
 
@@ -23,14 +28,11 @@ async def lifespan(app: FastAPI):
     await services.initialize()
     yield
 
+app = FastAPI(title="FinSight AI Assistant",
+description="API for querying and managing FinSight AI Application",
+lifespan=lifespan)
 
-app = FastAPI(
-    title="FinSight AI Assistant",
-    description="API for querying and managing FinSight AI Application",
-    lifespan=lifespan,
-)
-
-
+logger = logging.getLogger(__name__)
 
 # Allow explicit origins for Next.js and Vite dev servers
 app.add_middleware(
@@ -44,6 +46,8 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -66,14 +70,45 @@ def get_db():
     db = db_module.SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.exception("Database request failed: %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "The database is temporarily unavailable. Please try again."},
+    )
 
 
 @app.get("/api/health")
 def health():
     return {"status": "ok", "message": "AI fintech backend running"}
 
+
+@app.post("/api/chat/mutual-funds", response_model=schemas.ChatResponse)
+def chat_mutual_funds(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.MutualFundAgent(db).reply(request.message, request.session_id)
+
+
+@app.post("/api/chat/etfs", response_model=schemas.ChatResponse)
+def chat_etfs(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.EtfAgent(db).reply(request.message, request.session_id)
+
+
+@app.post("/api/chat/stocks", response_model=schemas.ChatResponse)
+def chat_stocks(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.StockAgent(db).reply(request.message, request.session_id)
+
+
+@app.post("/api/chat/investment-advisor", response_model=schemas.ChatResponse)
+def chat_investment_advisor(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.InvestmentAdvisorAgent(db).reply(request.message, request.session_id)
 
 # --- Auth Endpoints ---
 
@@ -183,7 +218,9 @@ def get_recommendations(
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
     llm: ChatModelProvider = Depends(get_model_provider)
+    llm: ChatModelProvider = Depends(get_model_provider)
 ):
+    agent = agents.InvestmentAgent(db, llm)
     agent = agents.InvestmentAgent(db, llm)
     recommendation = agent.recommend(risk_profile=risk_profile, investment_horizon=investment_horizon)
     return recommendation
