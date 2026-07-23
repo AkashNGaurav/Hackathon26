@@ -17,10 +17,11 @@ from sqlalchemy import (
     Boolean,
     Enum as SQLEnum,
     Index,
+    ForeignKey,
     func,
 )
 from sqlalchemy.types import UUID
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
 
 Base = declarative_base()
 
@@ -172,7 +173,156 @@ class Asset(Base):
         comment="Timestamp when record was last updated"
     )
 
+    asset_allocations: Mapped[list["AssetAllocation"]] = relationship("AssetAllocation", back_populates="asset", cascade="all, delete-orphan")
+
     __table_args__ = (
         Index("ix_assets_type_active", "asset_type", "is_active"),
     )
+
+
+# --- User Model ---
+
+class User(Base):
+    """
+    User account model for authentication, profile management, and KYC verification status.
+    """
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True,
+        autoincrement=True,
+        comment="Unique identifier for the user"
+    )
+    email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="User unique email address"
+    )
+    username: Mapped[str] = mapped_column(
+        String(100),
+        unique=True,
+        index=True,
+        nullable=False,
+        comment="User unique username"
+    )
+    hashed_password: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        comment="Hashed password"
+    )
+    country: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Country of residence"
+    )
+    kyc_completed: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        comment="Flag indicating whether KYC verification is completed"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        comment="Timestamp when user record was created"
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+        comment="Timestamp when user record was last updated"
+    )
+
+    asset_allocations: Mapped[list["AssetAllocation"]] = relationship("AssetAllocation", back_populates="user", cascade="all, delete-orphan")
+
+
+# --- Asset Allocation Model ---
+
+class AssetAllocation(Base):
+    """
+    Represents a user's investment holding in a particular asset.
+    Maps Users to Assets.
+    """
+
+    __tablename__ = "asset_allocations"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+        comment="Owner of the investment"
+    )
+
+    asset_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("assets.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+        comment="Reference to master asset"
+    )
+
+    quantity: Mapped[Decimal] = mapped_column(
+        Numeric(18, 4),
+        nullable=False,
+        comment="Number of units purchased"
+    )
+
+    average_buy_price: Mapped[Decimal] = mapped_column(
+        Numeric(18, 4),
+        nullable=False,
+        comment="Average purchase price per unit"
+    )
+
+    invested_amount: Mapped[Decimal] = mapped_column(
+        Numeric(18, 4),
+        nullable=False,
+        comment="Total invested amount"
+    )
+
+    current_value: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(18, 4),
+        nullable=True,
+        comment="Current market value"
+    )
+
+    purchase_date: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Date when investment was made"
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now()
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now()
+    )
+
+    user = relationship("User", back_populates="asset_allocations")
+    asset = relationship("Asset", back_populates="asset_allocations")
+
+    __table_args__ = (
+        Index("ix_user_asset", "user_id", "asset_id"),
+    )
+
+
+
 
