@@ -89,7 +89,8 @@ class GeminiClient:
 class InvestmentAgent:
     def __init__(self, db, llm=None):
         self.db = db
-        self.client = llm or GeminiClient()
+        self.client = llm
+        # self.client = GeminiClient()
 
     def recommend(self, risk_profile: str, investment_horizon: int) -> RecommendationResponse:
         allocation = self._allocation_for_profile(risk_profile)
