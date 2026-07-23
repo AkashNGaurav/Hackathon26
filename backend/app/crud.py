@@ -110,6 +110,25 @@ def create_user(db: Session, user_data: schemas.UserRegisterRequest) -> models.U
     return db_user
 
 
+def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]:
+    from app.auth_utils import verify_password
+    user = get_user_by_username(db, username)
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+
+def update_user_kyc(db: Session, user: models.User, kyc_completed: bool) -> models.User:
+    user.kyc_completed = kyc_completed
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+
+
 # --- Asset CRUD Operations ---
 
 def get_asset(db: Session, asset_id: uuid.UUID) -> Optional[models.Asset]:

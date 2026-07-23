@@ -79,7 +79,102 @@ def test_all():
     res_dup = client.post("/api/auth/register", json=reg_payload)
     assert res_dup.status_code == 400
     print(f"[PASS] Duplicate User Registration -> Status: {res_dup.status_code} (400 Bad Request as expected)")
+
+    # --- USER LOGIN TEST ---
+    print("\n--------------------------------------------------")
+    print("           TESTING USER LOGIN (AUTH)              ")
+    print("--------------------------------------------------")
+    login_payload = {
+        "username": "finsight_user",
+        "password": "StrongPassword123!"
+    }
+    res_login = client.post("/api/auth/login", json=login_payload)
+    assert res_login.status_code == 200
+    login_data = res_login.json()
+    assert "access_token" in login_data
+    assert login_data["token_type"] == "bearer"
+    assert login_data["user"]["username"] == "finsight_user"
+    print(f"[PASS] POST /api/auth/login -> Status: 200 OK")
+    print(f"       Access Token: {login_data['access_token'][:30]}...")
+    print(f"       User Profile: {login_data['user']}")
+
+    # Test Invalid Password Login
+    bad_login_payload = {
+        "username": "finsight_user",
+        "password": "WrongPassword123!"
+    }
+    res_bad_login = client.post("/api/auth/login", json=bad_login_payload)
+    assert res_bad_login.status_code == 401
+    print(f"[PASS] Invalid Password Login -> Status: {res_bad_login.status_code} (401 Unauthorized as expected)")
+
+    # Test Non-existent User Login
+    no_user_payload = {
+        "username": "non_existent_user",
+        "password": "StrongPassword123!"
+    }
+    res_no_user = client.post("/api/auth/login", json=no_user_payload)
+    assert res_no_user.status_code == 401
+    print(f"[PASS] Non-existent User Login -> Status: {res_no_user.status_code} (401 Unauthorized as expected)")
+
+    # --- GET ME & UPDATE KYC TESTS ---
+    print("\n--------------------------------------------------")
+    print("      TESTING GET PROFILE & UPDATE KYC STATUS     ")
+    print("--------------------------------------------------")
+    auth_headers = {"Authorization": f"Bearer {login_data['access_token']}"}
+
+    # GET /api/auth/me
+    res_me = client.get("/api/auth/me", headers=auth_headers)
+    assert res_me.status_code == 200
+    me_data = res_me.json()
+    assert me_data["username"] == "finsight_user"
+    assert me_data["email"] == "user@example.com"
+    print(f"[PASS] GET /api/auth/me -> Status: 200 OK, Profile: {me_data}")
+
+    # PUT /api/auth/me/kyc
+    res_kyc = client.put("/api/auth/me/kyc", json={"kyc_completed": True}, headers=auth_headers)
+    assert res_kyc.status_code == 200
+    kyc_data = res_kyc.json()
+    assert kyc_data["kyc_completed"] is True
+    assert kyc_data["message"] == "KYC status updated successfully"
+    print(f"[PASS] PUT /api/auth/me/kyc -> Status: 200 OK, Updated Response: {kyc_data}")
+
+    # Verify updated KYC status on login
+    res_relogin = client.post("/api/auth/login", json=login_payload)
+    assert res_relogin.status_code == 200
+    assert res_relogin.json()["user"]["kyc_completed"] is True
+    print(f"[PASS] Verified updated kyc_completed=True on subsequent login!")
+
+    # --- COMPREHENSIVE AUTHORIZATION TEST CASES ---
+    print("\n--------------------------------------------------")
+    print("       RUNNING AUTHORIZATION SECURITY TESTS       ")
+    print("--------------------------------------------------")
+
+    # A1. Test Missing Authorization Header
+    res_no_header = client.get("/api/auth/me")
+    assert res_no_header.status_code in [401, 403]
+    print(f"[PASS] A1. Missing Authorization Header -> Status: {res_no_header.status_code} (Unauthorized/Forbidden as expected)")
+
+    # A2. Test Malformed Authorization Scheme (Basic instead of Bearer)
+    res_basic = client.get("/api/auth/me", headers={"Authorization": "Basic dXNlcjpwYXNz"})
+    assert res_basic.status_code in [401, 403]
+    print(f"[PASS] A2. Malformed Scheme (Basic) -> Status: {res_basic.status_code} (Unauthorized/Forbidden as expected)")
+
+    # A3. Test Tampered Token Signature
+    valid_token = login_data["access_token"]
+    tampered_token = valid_token[:-6] + "XXXXXX"
+    res_tampered = client.get("/api/auth/me", headers={"Authorization": f"Bearer {tampered_token}"})
+    assert res_tampered.status_code == 401
+    print(f"[PASS] A3. Tampered Token Signature -> Status: {res_tampered.status_code} (401 Unauthorized as expected)")
+
+    # A4. Test Expired Token
+    from app.auth_utils import create_access_token
+    expired_token = create_access_token(user_id=login_data["user"]["id"], username="finsight_user", email="user@example.com", expires_in_seconds=-3600)
+    res_expired = client.get("/api/auth/me", headers={"Authorization": f"Bearer {expired_token}"})
+    assert res_expired.status_code == 401
+    print(f"[PASS] A4. Expired Token Authorization -> Status: {res_expired.status_code} (401 Unauthorized as expected)")
     print("--------------------------------------------------\n")
+
+
 
 
     # 2. Recommendations
