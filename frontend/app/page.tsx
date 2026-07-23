@@ -1,223 +1,329 @@
 import { DarkThemeToggle } from "flowbite-react";
 import Image from "next/image";
 
+const features = [
+  {
+    title: "Empowering everyone",
+    body: "Take confident steps toward your financial future with low fees, simple tools, and a bank-grade app experience.",
+    stat: "2.50%",
+    label: "annual interest",
+  },
+  {
+    title: "Shape finances your way",
+    body: "Invest at your pace with curated portfolios, recurring plans, and cash that keeps earning while you decide.",
+    stat: "1 euro",
+    label: "to start",
+  },
+  {
+    title: "Built for calm decisions",
+    body: "Clear risk views, transparent pricing, and automation help you focus on goals instead of market noise.",
+    stat: "24/7",
+    label: "portfolio view",
+  },
+];
+
+const products = [
+  {
+    name: "Broker",
+    title: "Self-investing",
+    body: "Trade stocks, ETFs, funds, crypto and more. Build savings plans with fractional investing from just 1 euro.",
+    cta: "Explore broker",
+  },
+  {
+    name: "Wealth",
+    title: "Automated investing",
+    body: "Let experts manage a diversified portfolio aligned with your goals, timeline, and risk profile.",
+    cta: "View portfolios",
+  },
+];
+
 export default function Home() {
-  const CARDS = [
-    {
-      title: "Flowbite React Docs",
-      description:
-        "Learn more on how to get started and use the Flowbite React components",
-      url: "https://flowbite-react.com/",
-      icon: (
-        <svg
-          className="h-9 w-9 text-gray-500"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="M12 6.03v13m0-13c-2.819-.831-4.715-1.076-8.029-1.023A.99.99 0 0 0 3 6v11c0 .563.466 1.014 1.03 1.007 3.122-.043 5.018.212 7.97 1.023m0-13c2.819-.831 4.715-1.076 8.029-1.023A.99.99 0 0 1 21 6v11c0 .563-.466 1.014-1.03 1.007-3.122-.043-5.018.212-7.97 1.023"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Flowbite Blocks",
-      description:
-        "Get started with over 450 blocks to build websites even faster",
-      url: "https://flowbite.com/blocks/",
-      icon: (
-        <svg
-          className="h-9 w-9 text-gray-500"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="M9.143 4H4.857A.857.857 0 0 0 4 4.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 10 9.143V4.857A.857.857 0 0 0 9.143 4Zm10 0h-4.286a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286A.857.857 0 0 0 20 9.143V4.857A.857.857 0 0 0 19.143 4Zm-10 10H4.857a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286a.857.857 0 0 0 .857-.857v-4.286A.857.857 0 0 0 9.143 14Zm10 0h-4.286a.857.857 0 0 0-.857.857v4.286c0 .473.384.857.857.857h4.286a.857.857 0 0 0 .857-.857v-4.286a.857.857 0 0 0-.857-.857Z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Flowbite Icons",
-      description:
-        "Get started with over 650+ SVG free and open-source icons for your apps",
-      url: "https://flowbite.com/icons/",
-      icon: (
-        <svg
-          className="h-9 w-9 text-gray-500"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="M11 6.5h2M11 18h2m-7-5v-2m12 2v-2M5 8h2a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1Zm0 12h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1Zm12 0h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1Zm0-12h2a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1Z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Flowbite Illustrations",
-      description:
-        "Start using over 50+ SVG illustrations in 3D style to add character to your apps",
-      url: "https://flowbite.com/illustrations/",
-      icon: (
-        <svg
-          className="h-9 w-9 text-gray-500"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="m3 16 5-7 6 6.5m6.5 2.5L16 13l-4.286 6M14 10h.01M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Flowbite Pro",
-      description:
-        "Upgrade your development stack with more components and templates from Flowbite",
-      url: "https://flowbite.com/pro/",
-      icon: (
-        <Image
-          alt="Flowbite Pro logo"
-          src="/flowbite.svg"
-          width={36}
-          height={36}
-        />
-      ),
-    },
-    {
-      title: "Flowbite Figma",
-      description:
-        "Use our Figma Design System to design and collaborate better within your team",
-      url: "https://flowbite.com/figma/",
-      icon: <Image alt="Figma logo" src="/figma.svg" width={36} height={36} />,
-    },
-  ];
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4 py-24 dark:bg-gray-900">
-      <div className="absolute inset-0 size-full">
-        <div className="relative h-full w-full select-none">
-          <Image
-            className="absolute right-0 min-w-dvh dark:hidden"
-            alt="Pattern Light"
-            src="/pattern-light.svg"
-            width="803"
-            height="774"
-          />
-          <Image
-            className="absolute right-0 hidden min-w-dvh dark:block"
-            alt="Pattern Dark"
-            src="/pattern-dark.svg"
-            width="803"
-            height="775"
-          />
-        </div>
-      </div>
-      <div className="absolute top-4 right-4">
-        <DarkThemeToggle />
-      </div>
+    <main className="min-h-screen bg-[#f5f2ea] text-[#101410] transition-colors dark:bg-[#090b0a] dark:text-[#f6f3ea]">
+      <header className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f2ea]/90 backdrop-blur dark:border-white/10 dark:bg-[#090b0a]/85">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+          <a href="#" className="flex items-center gap-3" aria-label="FinSight home">
+            <Image
+              src="/logo.png"
+              alt="FinSight logo"
+              width={36}
+              height={36}
+              priority
+              className="size-9 shrink-0"
+            />
+            <span className="text-lg font-semibold tracking-normal">FinSight</span>
+          </a>
 
-      <div className="relative flex w-full max-w-5xl flex-col items-center justify-center gap-12">
-        <div className="relative flex flex-col items-center gap-6">
-          <h1 className="relative text-center text-4xl leading-[125%] font-bold text-gray-900 dark:text-gray-200">
-            Build fast with us
-          </h1>
-          <span className="inline-flex flex-wrap items-center justify-center gap-2.5 text-center">
-            <span className="inline text-xl text-gray-600 dark:text-gray-400">
-              Your app is ready, start building with
-            </span>
-            <span className="relative inline-flex items-center gap-2">
+          <div className="hidden items-center gap-8 text-sm font-medium text-[#3c423a] dark:text-[#c8c3b7] md:flex">
+            <a className="transition hover:text-[#101410] dark:hover:text-white" href="#invest">
+              Invest
+            </a>
+            <a className="transition hover:text-[#101410] dark:hover:text-white" href="#cash">
+              Cash
+            </a>
+            <a className="transition hover:text-[#101410] dark:hover:text-white" href="#wealth">
+              Wealth
+            </a>
+            <a className="transition hover:text-[#101410] dark:hover:text-white" href="#security">
+              Security
+            </a>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <DarkThemeToggle />
+            <a
+              href="#account"
+              className="hidden rounded-full bg-[#101410] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2d342d] dark:bg-[#f6f3ea] dark:text-[#090b0a] dark:hover:bg-white sm:inline-flex"
+            >
+              Open account
+            </a>
+          </div>
+        </nav>
+      </header>
+
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-52 bg-[#dfe8cf] dark:bg-[#17251e]" />
+        <div className="relative mx-auto grid min-h-[calc(100vh-73px)] max-w-7xl items-center gap-12 px-5 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
+          <div className="max-w-2xl">
+            <div className="mb-7 inline-flex items-center gap-4 rounded-full border border-black/10 bg-white/60 px-4 py-3 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/8">
               <Image
-                className="size-6"
-                alt="Flowbite React logo"
-                src="/flowbite-react.svg"
-                width={24}
-                height={24}
+                src="/logo.png"
+                alt="FinSight full logo"
+                width={190}
+                height={92}
+                priority
+                className="h-auto w-[170px] sm:w-[190px]"
               />
-              <span className="relative w-fit text-xl font-semibold whitespace-nowrap text-[#111928] dark:text-white">
-                Flowbite React
-              </span>
-            </span>
-            <h2 className="inline text-xl text-gray-600 dark:text-gray-400">
-              now.
-            </h2>
-          </span>
-        </div>
-
-        <div className="relative flex w-full flex-col items-start gap-6 self-stretch">
-          <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
-            {CARDS.map((card) => (
+            </div>
+            <p className="mb-5 text-sm font-semibold uppercase text-[#516246] dark:text-[#a7d48f]">
+              Invest with FinSight
+            </p>
+            <h1 className="text-5xl font-semibold leading-[1.02] tracking-normal text-[#101410] dark:text-[#f6f3ea] md:text-7xl">
+              Plan ahead. Live comfortably.
+            </h1>
+            <p className="mt-7 max-w-xl text-xl leading-8 text-[#454b42] dark:text-[#d0cabf]">
+              Earn interest on cash, invest across global markets, and keep every
+              long-term goal in one calm, modern finance app.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <a
-                key={card.title}
-                href={card.url}
-                target="_blank"
-                className="outline-primary-600 dark:outline-primary-500 group hover:border-primary-600 dark:hover:border-primary-500 cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-gray-50 outline-offset-2 focus:outline-2 dark:border-gray-700 dark:bg-gray-800"
+                id="account"
+                href="#products"
+                className="inline-flex items-center justify-center rounded-full bg-[#101410] px-7 py-4 text-sm font-semibold text-white transition hover:bg-[#2d342d] dark:bg-[#f6f3ea] dark:text-[#090b0a] dark:hover:bg-white"
               >
-                <div className="flex items-center gap-6 p-4">
-                  <div className="flex flex-1 items-center gap-2">
-                    <div className="size-9">{card.icon}</div>
+                Open account
+              </a>
+              <a
+                href="#risk"
+                className="inline-flex items-center justify-center rounded-full border border-[#101410]/25 px-7 py-4 text-sm font-semibold transition hover:border-[#101410] hover:bg-white/45 dark:border-white/25 dark:hover:border-white dark:hover:bg-white/10"
+              >
+                See risks
+              </a>
+            </div>
+            <p className="mt-5 text-sm text-[#5c6457] dark:text-[#b4ad9f]">
+              Capital at risk. Cash rates are variable and subject to market conditions.
+            </p>
+          </div>
 
-                    <div className="flex flex-1 flex-col items-start justify-center gap-1.5 border-l border-gray-200 pl-3.5 dark:border-gray-700">
-                      <div className="w-full font-sans text-lg leading-4 font-semibold text-gray-900 dark:text-gray-200">
-                        {card.title}
-                      </div>
-
-                      <div className="w-full font-sans text-sm leading-5 font-normal text-gray-500 dark:text-gray-400">
-                        {card.description}
-                      </div>
+          <div className="relative flex min-h-[520px] items-center justify-center">
+            <div className="absolute h-[480px] w-[480px] rounded-full bg-[#bfd0a0] blur-3xl dark:bg-[#1d6a4d]/60" />
+            <div className="relative grid w-full max-w-xl grid-cols-[0.85fr_1fr] items-end gap-4">
+              <div className="mb-14 rounded-[2rem] border border-black/10 bg-[#f8f5ee] p-4 shadow-2xl shadow-black/20 dark:border-white/10 dark:bg-[#151816]">
+                <div className="rounded-[1.55rem] bg-[#101410] p-5 text-white dark:bg-[#eef2e8] dark:text-[#101410]">
+                  <div className="mb-7 flex items-center justify-between">
+                    <span className="text-sm font-semibold">Cash</span>
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs dark:bg-black/10">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-sm opacity-70">Available balance</p>
+                  <p className="mt-2 text-4xl font-semibold">EUR 18,420</p>
+                  <div className="mt-9 space-y-3">
+                    <div className="h-3 w-full rounded-full bg-white/15 dark:bg-black/10">
+                      <div className="h-3 w-3/4 rounded-full bg-[#9fca78]" />
+                    </div>
+                    <div className="flex justify-between text-xs opacity-75">
+                      <span>2.50% p.a.</span>
+                      <span>Monthly payout</span>
                     </div>
                   </div>
-
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="group-hover:text-primary-600 dark:group-hover:text-primary-500 h-6 w-6 text-gray-500 transition-transform group-hover:translate-x-1"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M14.2929 7.29289C14.6834 6.90237 15.3166 6.90237 15.7071 7.29289L19.7071 11.2929C19.8946 11.4804 20 11.7348 20 12C20 12.2652 19.8946 12.5196 19.7071 12.7071L15.7071 16.7071C15.3166 17.0976 14.6834 17.0976 14.2929 16.7071C13.9024 16.3166 13.9024 15.6834 14.2929 15.2929L16.5858 13H5C4.44772 13 4 12.5523 4 12C4 11.4477 4.44772 11 5 11H16.5858L14.2929 8.70711C13.9024 8.31658 13.9024 7.68342 14.2929 7.29289Z"
-                      fill="currentColor"
-                    />
-                  </svg>
                 </div>
-              </a>
+              </div>
+
+              <div className="rounded-[2.25rem] border border-black/10 bg-[#f9f7f1] p-3 shadow-2xl shadow-black/25 dark:border-white/10 dark:bg-[#161917]">
+                <div className="overflow-hidden rounded-[1.75rem] bg-[#eaf0df] dark:bg-[#0d120f]">
+                  <div className="flex items-center justify-between border-b border-black/10 px-5 py-4 dark:border-white/10">
+                    <span className="text-sm font-semibold">Portfolio</span>
+                    <span className="text-xs text-[#62715c] dark:text-[#a7d48f]">+12.8%</span>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-sm text-[#5c6457] dark:text-[#b4ad9f]">Total value</p>
+                    <p className="mt-2 text-4xl font-semibold">EUR 42,780</p>
+                    <div className="mt-8 flex h-40 items-end gap-2">
+                      {[38, 58, 46, 76, 62, 88, 70, 96].map((height) => (
+                        <span
+                          key={height}
+                          className="flex-1 rounded-t-full bg-[#2f6b4f] dark:bg-[#a7d48f]"
+                          style={{ height: `${height}%` }}
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-8 space-y-3">
+                      {["ETF Core", "Global Stocks", "Green Bonds"].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center justify-between rounded-xl bg-white/75 px-4 py-3 text-sm dark:bg-white/8"
+                        >
+                          <span>{item}</span>
+                          <span className="font-semibold text-[#2f6b4f] dark:text-[#a7d48f]">
+                            Buy
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="risk" className="border-y border-black/10 bg-[#101410] text-white dark:border-white/10 dark:bg-[#f6f3ea] dark:text-[#090b0a]">
+        <div className="mx-auto grid max-w-7xl gap-6 px-5 py-7 md:grid-cols-2 lg:px-8">
+          <div>
+            <p className="text-sm font-semibold">Bank accounts</p>
+            <div className="mt-3 flex items-center gap-4">
+              <span className="text-3xl font-semibold">1 / 6</span>
+              <span className="text-sm opacity-70">
+                Lower product risk. Deposits protected up to applicable statutory limits.
+              </span>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Investments</p>
+            <div className="mt-3 flex items-center gap-4">
+              <span className="text-3xl font-semibold">6 / 6</span>
+              <span className="text-sm opacity-70">
+                Higher product risk. Market value may rise or fall and losses can occur.
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="cash" className="bg-[#e7eddc] px-5 py-14 dark:bg-[#101611] lg:px-8">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-sm font-semibold uppercase text-[#516246] dark:text-[#a7d48f]">
+              Overnight cash
+            </p>
+            <h2 className="mt-4 text-4xl font-semibold leading-tight md:text-5xl">
+              2.50% interest on flexible cash.
+            </h2>
+          </div>
+          <p className="text-lg leading-8 text-[#4e574b] dark:text-[#d0cabf]">
+            Keep idle money working with monthly payouts, transparent protection,
+            and instant access from the same account you use to invest.
+          </p>
+        </div>
+      </section>
+
+      <section id="invest" className="px-5 py-20 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase text-[#516246] dark:text-[#a7d48f]">
+              Investing and saving
+            </p>
+            <h2 className="mt-4 text-4xl font-semibold leading-tight md:text-6xl">
+              Everything for your money in one app.
+            </h2>
+          </div>
+
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {features.map((feature) => (
+              <article
+                key={feature.title}
+                className="rounded-lg border border-black/10 bg-white/55 p-6 dark:border-white/10 dark:bg-white/6"
+              >
+                <p className="text-4xl font-semibold text-[#2f6b4f] dark:text-[#a7d48f]">
+                  {feature.stat}
+                </p>
+                <p className="mt-1 text-sm text-[#687063] dark:text-[#b4ad9f]">
+                  {feature.label}
+                </p>
+                <h3 className="mt-8 text-xl font-semibold">{feature.title}</h3>
+                <p className="mt-3 leading-7 text-[#4e574b] dark:text-[#d0cabf]">
+                  {feature.body}
+                </p>
+              </article>
             ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      <section id="products" className="bg-[#fcfaf4] px-5 py-20 dark:bg-[#0d100e] lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2">
+          {products.map((product) => (
+            <article
+              id={product.name === "Wealth" ? "wealth" : undefined}
+              key={product.name}
+              className="grid min-h-[430px] content-between rounded-lg border border-black/10 bg-[#f5f2ea] p-7 dark:border-white/10 dark:bg-[#151816]"
+            >
+              <div>
+                <p className="text-sm font-semibold text-[#516246] dark:text-[#a7d48f]">
+                  {product.name}
+                </p>
+                <h3 className="mt-4 text-4xl font-semibold">{product.title}</h3>
+                <p className="mt-5 max-w-lg text-lg leading-8 text-[#4e574b] dark:text-[#d0cabf]">
+                  {product.body}
+                </p>
+              </div>
+              <div className="mt-12 flex items-end justify-between gap-6">
+                <a
+                  href="#account"
+                  className="inline-flex rounded-full border border-[#101410]/20 px-5 py-3 text-sm font-semibold transition hover:border-[#101410] dark:border-white/25 dark:hover:border-white"
+                >
+                  {product.cta}
+                </a>
+                <div className="h-28 w-36 rounded-t-[2rem] bg-[#2f6b4f] p-4 dark:bg-[#a7d48f]">
+                  <div className="h-full rounded-t-[1.4rem] bg-white/40 dark:bg-black/20" />
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <footer id="security" className="border-t border-black/10 px-5 py-12 text-sm text-[#4e574b] dark:border-white/10 dark:text-[#b4ad9f] lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
+          <div>
+            <p className="text-lg font-semibold text-[#101410] dark:text-[#f6f3ea]">
+              FinSight
+            </p>
+            <p className="mt-4 max-w-xl leading-7">
+              This demo landing page is inspired by modern investment banking
+              sites. Investing involves risk, including loss of capital.
+            </p>
+          </div>
+          <div>
+            <p className="font-semibold text-[#101410] dark:text-[#f6f3ea]">Company</p>
+            <div className="mt-4 grid gap-3">
+              <a href="#">About</a>
+              <a href="#">Careers</a>
+              <a href="#">Security</a>
+            </div>
+          </div>
+          <div>
+            <p className="font-semibold text-[#101410] dark:text-[#f6f3ea]">Legal</p>
+            <div className="mt-4 grid gap-3">
+              <a href="#">Documents</a>
+              <a href="#">Privacy</a>
+              <a href="#">Contact</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }
