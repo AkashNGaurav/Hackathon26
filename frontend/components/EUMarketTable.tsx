@@ -236,13 +236,15 @@ export function EUMarketTable() {
       <div className="overflow-x-auto">
         <Table hoverable className="w-full text-left">
           <TableHead className="bg-[#f8f5ee] dark:bg-[#1a1f1c]">
-            <TableHeadCell>Asset Name</TableHeadCell>
-            <TableHeadCell>Symbol</TableHeadCell>
-            <TableHeadCell>Type</TableHeadCell>
-            <TableHeadCell>Exchange</TableHeadCell>
-            <TableHeadCell>Live Price</TableHeadCell>
-            <TableHeadCell>Change (%)</TableHeadCell>
-            <TableHeadCell>AI Sentiment</TableHeadCell>
+            <tr>
+              <TableHeadCell>Asset Name</TableHeadCell>
+              <TableHeadCell>Symbol</TableHeadCell>
+              <TableHeadCell>Type</TableHeadCell>
+              <TableHeadCell>Exchange</TableHeadCell>
+              <TableHeadCell>Live Price</TableHeadCell>
+              <TableHeadCell>Change (%)</TableHeadCell>
+              <TableHeadCell>AI Sentiment</TableHeadCell>
+            </tr>
           </TableHead>
 
           <TableBody className="divide-y divide-black/5 dark:divide-white/5">
