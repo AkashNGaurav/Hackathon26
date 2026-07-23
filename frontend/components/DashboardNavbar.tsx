@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Wallet } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getStoredUser, removeToken, AuthUser } from "@/lib/auth";
+import { getStoredUser, removeToken, AuthUser, API_BASE_URL } from "@/lib/auth";
 
 export function DashboardNavbar() {
   const pathname = usePathname();
@@ -24,7 +24,7 @@ export function DashboardNavbar() {
   useEffect(() => {
     const updateBalance = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/wallet/balance");
+        const res = await fetch(`${API_BASE_URL}/api/wallet/balance`);
         if (res.ok) {
           const data = await res.json();
           setWalletBalance(data.balance);
@@ -75,7 +75,7 @@ export function DashboardNavbar() {
           priority
         />
         <span className="self-center whitespace-nowrap text-lg sm:text-xl font-black tracking-tight text-[#101410] dark:text-[#f6f3ea]">
-          InvestPro
+          FinSight
         </span>
       </NavbarBrand>
 

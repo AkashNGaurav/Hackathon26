@@ -187,6 +187,18 @@ class AssetProfileData(BaseModel):
     fund_family: Optional[str] = None
 
 
+class MarketNewsArticle(BaseModel):
+    id: str
+    title: str
+    snippet: str
+    category: str
+    source: str
+    publishedAt: str
+    readTime: str
+    relatedTickers: list[str]
+    link: Optional[str] = None
+
+
 class AIRecommendRequest(BaseModel):
     symbols: list[str] = Field(default_factory=lambda: ["MC.PA", "VW.DE", "VUAA.L", "ASML.AS"])
     risk_profile: str = Field("moderate", example="moderate")

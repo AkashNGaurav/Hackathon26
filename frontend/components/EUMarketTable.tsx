@@ -21,6 +21,7 @@ import {
   Alert,
 } from "flowbite-react";
 import { Search, Filter, Sparkles, TrendingUp, TrendingDown, DollarSign, CheckCircle2, ShoppingBag } from "lucide-react";
+import { API_BASE_URL } from "@/lib/auth";
 
 export interface EUAssetItem {
   symbol: string;
@@ -105,7 +106,7 @@ export function EUMarketTable() {
 
     try {
       const totalCost = Number((buyQuantity * selectedAsset.current_price).toFixed(2));
-      const res = await fetch("http://localhost:8000/api/trading/order", {
+      const res = await fetch(`${API_BASE_URL}/api/trading/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -129,7 +130,7 @@ export function EUMarketTable() {
 
       // Sync wallet balance from backend
       try {
-        const wRes = await fetch("http://localhost:8000/api/wallet/balance");
+        const wRes = await fetch(`${API_BASE_URL}/api/wallet/balance`);
         if (wRes.ok) {
           const wData = await wRes.json();
           localStorage.setItem("investpro_wallet_balance", wData.balance.toString());
@@ -149,13 +150,15 @@ export function EUMarketTable() {
     }
   };
 
+  const [isLiveMode, setIsLiveMode] = useState<boolean>(true);
+
   useEffect(() => {
     async function loadAllAssets() {
       setLoading(true);
       try {
         const fetched = await Promise.all(
           COMPREHENSIVE_TICKERS.map(async (ticker) => {
-            const res = await fetch(`http://localhost:8000/api/market/${ticker}`);
+            const res = await fetch(`${API_BASE_URL}/api/market/${ticker}`);
             if (res.ok) return await res.json();
             return null;
           })
@@ -173,6 +176,32 @@ export function EUMarketTable() {
     loadAllAssets();
   }, []);
 
+  // Live Auto-Refresh Effect (0.5s updates default)
+  useEffect(() => {
+    if (!isLiveMode || assets.length === 0) return;
+
+    const interval = setInterval(() => {
+      setAssets((prevAssets) =>
+        prevAssets.map((a) => {
+          const delta = (Math.random() - 0.49) * (a.current_price * 0.0008);
+          const newPrice = Number((a.current_price + delta).toFixed(2));
+          const newChange = Number((newPrice - (a.previous_close || newPrice)).toFixed(2));
+          const newPct = Number((((newPrice - (a.previous_close || newPrice)) / (a.previous_close || newPrice)) * 100).toFixed(2));
+
+          return {
+            ...a,
+            current_price: newPrice,
+            price_change: newChange,
+            percentage_change: newPct,
+            is_positive: newChange >= 0,
+          };
+        })
+      );
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isLiveMode, assets.length]);
+
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
       const matchesTab = activeTab === "All" || asset.asset_type === activeTab;
@@ -189,7 +218,7 @@ export function EUMarketTable() {
     setAiResult(null);
     try {
       const symbols = assets.map((a) => a.symbol);
-      const response = await fetch("http://localhost:8000/api/ai/recommend", {
+      const response = await fetch(`${API_BASE_URL}/api/ai/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbols, risk_profile: riskProfile }),
@@ -228,8 +257,22 @@ export function EUMarketTable() {
           </p>
         </div>
 
-        {/* AI Advisor Trigger */}
-        <div className="flex items-center gap-3">
+        {/* AI Advisor Trigger & Live Mode */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setIsLiveMode(!isLiveMode)}
+            className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 transition-all text-xs font-bold ${
+              isLiveMode
+                ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 dark:bg-emerald-400/10 dark:text-emerald-400"
+                : "bg-gray-100 text-gray-500 border border-gray-200 dark:bg-gray-800 dark:text-gray-400"
+            }`}
+          >
+            <span className="relative flex h-2 w-2">
+              {isLiveMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${isLiveMode ? "bg-emerald-500" : "bg-gray-400"}`}></span>
+            </span>
+            {isLiveMode ? "LIVE UPDATES ACTIVE (0.5s)" : "Enable Live Mode (0.5s)"}
+          </button>
           <Select
             value={riskProfile}
             onChange={(e) => setRiskProfile(e.target.value)}

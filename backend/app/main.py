@@ -1,20 +1,20 @@
+import logging
 from typing import Optional
 import uuid
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends, Query, status
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
-import uuid
-from typing import Optional
-from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
-from routes import ai_advisor, market_data, trading
 from sqlalchemy.orm import Session
-from app import models, schemas, crud, agents, db as db_module
+
+from app import models, schemas, crud, agents, auth, db as db_module
 from app.conf.config import services
 from app.depends import get_db, get_llm, get_model_provider
-from contextlib import asynccontextmanager
-from app.routers import market_data, ai_advisor
-from app import models, schemas, crud, agents, auth, db as db_module
+from app.services.model_provider import ChatModelProvider
+from app.routers import market_data, ai_advisor, trading
 
 load_dotenv()
 
@@ -46,8 +46,6 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -217,10 +215,8 @@ def get_recommendations(
     risk_profile: str = Query("moderate"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
-    llm: ChatModelProvider = Depends(get_model_provider)
-    llm: ChatModelProvider = Depends(get_model_provider)
+    llm: ChatModelProvider = Depends(get_model_provider),
 ):
-    agent = agents.InvestmentAgent(db, llm)
     agent = agents.InvestmentAgent(db, llm)
     recommendation = agent.recommend(risk_profile=risk_profile, investment_horizon=investment_horizon)
     return recommendation

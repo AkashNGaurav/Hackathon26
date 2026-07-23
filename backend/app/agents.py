@@ -105,23 +105,73 @@ class GeminiClient:
                 print(f"[Gemini Agent] API call error: {e}")
 
         if self.client:
-            try:
-                response = self.client.chat.completions.create(
-                    model="gemini-3-flash-preview",
-                    messages=[
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                if response.choices and len(response.choices) > 0:
-                    return response.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"[OpenAI Client] API call error: {e}")
+            models_to_try = [
+                os.getenv("GEMINI_MODEL"),
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash",
+            ]
+            for model_name in filter(None, models_to_try):
+                try:
+                    response = self.client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user", "content": prompt}
+                        ]
+                    )
+                    if response.choices and len(response.choices) > 0:
+                        return response.choices[0].message.content.strip()
+                except Exception as e:
+                    print(f"[OpenAI Client] API call error with model {model_name}: {e}")
 
         # Intelligent AI Agent Rationale fallback when API key is unconfigured or rate limited
         return (
             "Analyzed historical risk-adjusted returns and macroeconomic momentum. "
             "Recommends maintaining a core index allocation paired with capital preservation debt instruments."
+        )
+
+    def chat(self, system_prompt: str, messages: list[dict[str, str]]) -> str:
+        """Send chat messages with a system prompt to the AI provider."""
+        if self.model:
+            try:
+                formatted_prompt = f"System Instruction: {system_prompt}\n\n"
+                for msg in messages:
+                    role_str = "User" if msg.get("role") == "user" else "Assistant"
+                    formatted_prompt += f"{role_str}: {msg.get('content', '')}\n"
+                response = self.model.generate_content(formatted_prompt)
+                if response and hasattr(response, "text") and response.text:
+                    return response.text.strip()
+            except Exception as e:
+                print(f"[Gemini Agent Chat] API call error: {e}")
+
+        if self.client:
+            formatted_messages = [{"role": "system", "content": system_prompt}]
+            for msg in messages:
+                formatted_messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+
+            models_to_try = [
+                os.getenv("GEMINI_MODEL"),
+                "gemini-2.0-flash",
+                "gemini-2.0-flash-lite",
+                "gemini-1.5-flash",
+            ]
+            for model_name in filter(None, models_to_try):
+                try:
+                    response = self.client.chat.completions.create(
+                        model=model_name,
+                        messages=formatted_messages
+                    )
+                    if response.choices and len(response.choices) > 0:
+                        return response.choices[0].message.content.strip()
+                except Exception as e:
+                    print(f"[OpenAI Client Chat] Error with model {model_name}: {e}")
+
+        # Fallback response if AI API call fails or is unconfigured
+        last_user_message = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
+        return (
+            f"I have received your inquiry regarding: '{last_user_message}'. "
+            "Currently, the AI specialist agent is operating in offline mode. Please configure an active API key for live streaming AI responses."
         )
 
 

@@ -16,7 +16,7 @@ export type AuthResponse = {
 const TOKEN_KEY = "finsight_jwt_token";
 const USER_KEY = "finsight_user";
 const CURRENT_USER_KEY = "finsight_current_user";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_URL || process.env.URL || "http://localhost:8000";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;

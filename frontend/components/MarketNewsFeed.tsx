@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge, Card } from "flowbite-react";
+import { API_BASE_URL } from "@/lib/auth";
 
 export interface NewsArticle {
   id: string;
@@ -172,25 +173,24 @@ export function MarketNewsFeed() {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    /*
     const fetchMarketNews = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/news/market?category=${encodeURIComponent(activeCategory)}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch market news');
+        const response = await fetch(`${API_BASE_URL}/api/market/news?category=${encodeURIComponent(activeCategory)}`);
+        if (response.ok) {
+          const data: NewsArticle[] = await response.json();
+          if (data && data.length > 0) {
+            setArticles(data);
+          }
         }
-        const data: NewsArticle[] = await response.json();
-        setArticles(data);
       } catch (error) {
-        console.error('Error fetching market news:', error);
+        console.error('Error fetching live market news:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMarketNews();
-    */
   }, [activeCategory]);
 
   const filteredArticles =

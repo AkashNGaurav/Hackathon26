@@ -32,6 +32,7 @@ import {
   ArrowRight,
   Calendar,
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/auth";
 import Link from "next/link";
 
 export interface AIMFRecommendation {
@@ -156,7 +157,7 @@ function AIRecommendationsContent() {
           custom_goal_title: customTitle
         };
 
-        let recRes = await fetch("http://localhost:8000/api/ai/recommend-mf", {
+        let recRes = await fetch(`${API_BASE_URL}/api/ai/recommend-mf`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -174,7 +175,7 @@ function AIRecommendationsContent() {
 
       try {
         const riskParam = risk === "conservative" ? "low" : risk === "aggressive" ? "high" : risk;
-        let allocRes = await fetch(`http://localhost:8000/api/recommendations?risk_profile=${riskParam}&investment_horizon=${targetYears}`).catch(() => null);
+        let allocRes = await fetch(`${API_BASE_URL}/api/recommendations?risk_profile=${riskParam}&investment_horizon=${targetYears}`).catch(() => null);
 
         if (allocRes && allocRes.ok) {
           const aData = await allocRes.json();
@@ -214,7 +215,7 @@ function AIRecommendationsContent() {
 
     try {
       const qty = Number((investAmount / selectedRec.nav_price).toFixed(2));
-      const res = await fetch("http://localhost:8000/api/trading/order", {
+      const res = await fetch(`${API_BASE_URL}/api/trading/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -239,7 +240,7 @@ function AIRecommendationsContent() {
 
       // Sync wallet balance from backend
       try {
-        const wRes = await fetch("http://localhost:8000/api/wallet/balance");
+        const wRes = await fetch(`${API_BASE_URL}/api/wallet/balance`);
         if (wRes.ok) {
           const wData = await wRes.json();
           localStorage.setItem("investpro_wallet_balance", wData.balance.toString());

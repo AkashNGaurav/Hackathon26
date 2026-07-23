@@ -20,6 +20,8 @@ import {
   Label,
   Select,
 } from "flowbite-react";
+import { API_BASE_URL } from "@/lib/auth";
+import { openAIChatbot } from "@/components/AIChatbotWidget";
 import {
   Briefcase,
   TrendingUp,
@@ -126,7 +128,7 @@ export default function PortfolioPage() {
   // Fetch Wallet Balance
   const fetchWallet = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/wallet/balance");
+      const res = await fetch(`${API_BASE_URL}/api/wallet/balance`);
       if (res.ok) {
         const data = await res.json();
         setWalletBalance(data.balance);
@@ -141,8 +143,8 @@ export default function PortfolioPage() {
   const fetchPortfolioData = async () => {
     try {
       const [portRes, ordRes] = await Promise.all([
-        fetch("http://localhost:8000/api/trading/portfolio"),
-        fetch("http://localhost:8000/api/trading/orders"),
+        fetch(`${API_BASE_URL}/api/trading/portfolio`),
+        fetch(`${API_BASE_URL}/api/trading/orders`),
       ]);
       if (portRes.ok) {
         const portData = await portRes.json();
@@ -168,6 +170,12 @@ export default function PortfolioPage() {
     fetchPortfolioData();
     fetchWallet();
 
+    // Live auto-refresh interval by default (3s updates)
+    const interval = setInterval(() => {
+      fetchPortfolioData();
+      fetchWallet();
+    }, 3000);
+
     // Load active goal from localStorage
     const savedGoal = localStorage.getItem("investpro_active_goal");
     if (savedGoal) {
@@ -179,7 +187,10 @@ export default function PortfolioPage() {
     }
 
     window.addEventListener("walletUpdated", fetchWallet);
-    return () => window.removeEventListener("walletUpdated", fetchWallet);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("walletUpdated", fetchWallet);
+    };
   }, []);
 
   const handleRefresh = () => {
@@ -192,7 +203,7 @@ export default function PortfolioPage() {
 
   // Execute Sell Logic
   const executeSell = async (symbol: string, assetName: string, assetType: string, qty: number, unitPrice: number) => {
-    const res = await fetch("http://localhost:8000/api/trading/order", {
+    const res = await fetch(`${API_BASE_URL}/api/trading/order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -213,7 +224,7 @@ export default function PortfolioPage() {
 
     // Sync Wallet Balance
     try {
-      const wRes = await fetch("http://localhost:8000/api/wallet/balance");
+      const wRes = await fetch(`${API_BASE_URL}/api/wallet/balance`);
       if (wRes.ok) {
         const wData = await wRes.json();
         setWalletBalance(wData.balance);
@@ -365,7 +376,15 @@ export default function PortfolioPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <FlowbiteButton
+            onClick={() => openAIChatbot("investment-advisor")}
+            className="bg-[#2f6b4f] hover:bg-[#255740] text-white dark:bg-[#a7d48f] dark:text-[#090b0a] font-bold text-xs shadow-md rounded-full"
+          >
+            <Sparkles className="w-4 h-4 mr-1.5 text-amber-300 dark:text-[#090b0a]" />
+            Ask AI Advisor
+          </FlowbiteButton>
+
           <div className="text-right">
             <span className="text-[10px] uppercase tracking-wider text-gray-500 block font-semibold">
               Available Wallet
@@ -543,7 +562,7 @@ export default function PortfolioPage() {
 
                 let pricePerUnit = 88.50;
                 try {
-                  const mktRes = await fetch(`http://localhost:8000/api/market/${targetSymbol}`);
+                  const mktRes = await fetch(`${API_BASE_URL}/api/market/${targetSymbol}`);
                   if (mktRes.ok) {
                     const mktData = await mktRes.json();
                     pricePerUnit = mktData.current_price || 88.50;
@@ -553,7 +572,7 @@ export default function PortfolioPage() {
                 }
 
                 try {
-                  const res = await fetch("http://localhost:8000/api/trading/order", {
+                  const res = await fetch(`${API_BASE_URL}/api/trading/order`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

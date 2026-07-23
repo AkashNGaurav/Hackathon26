@@ -3,7 +3,9 @@
 import React, { useState, useEffect, FormEvent, useMemo } from "react";
 import { Spinner, TextInput, Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Alert, Badge, Modal, ModalHeader, ModalBody, ModalFooter, Label } from "flowbite-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Award, Briefcase, Globe, Info, Activity, BarChart2, ShoppingBag, CheckCircle2, ArrowRight, DollarSign } from "lucide-react";
+import { TrendingUp, TrendingDown, Award, Briefcase, Globe, Info, Activity, BarChart2, ShoppingBag, CheckCircle2, ArrowRight, DollarSign, Sparkles } from "lucide-react";
+import { API_BASE_URL } from "@/lib/auth";
+import { openAIChatbot } from "@/components/AIChatbotWidget";
 
 export interface EUAssetItem {
   symbol: string;
@@ -151,13 +153,13 @@ export default function ETFPage() {
   const [lastOrderId, setLastOrderId] = useState<string | null>(null);
 
   const fetchStock = async (symbol: string): Promise<EUAssetItem> => {
-    const res = await fetch(`http://localhost:8000/api/market/${symbol}`);
+    const res = await fetch(`${API_BASE_URL}/api/market/${symbol}`);
     if (!res.ok) throw new Error(`Failed to fetch ${symbol}`);
     return await res.json();
   };
 
   const fetchHistory = async (symbol: string, period: string) => {
-    const res = await fetch(`http://localhost:8000/api/market/${symbol}/history?period=${period}`);
+    const res = await fetch(`${API_BASE_URL}/api/market/${symbol}/history?period=${period}`);
     if (res.ok) {
       const hist = await res.json();
       setHistoryData(prev => ({ ...prev, [symbol]: hist }));
@@ -286,8 +288,8 @@ export default function ETFPage() {
       setDetailsLoading(prev => ({ ...prev, [symbol]: true }));
       try {
         const [histRes, profRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/market/${symbol}/history?period=${selectedPeriod}`),
-          fetch(`http://localhost:8000/api/market/${symbol}/profile`)
+          fetch(`${API_BASE_URL}/api/market/${symbol}/history?period=${selectedPeriod}`),
+          fetch(`${API_BASE_URL}/api/market/${symbol}/profile`)
         ]);
 
         if (histRes.ok && profRes.ok) {
@@ -326,7 +328,7 @@ export default function ETFPage() {
 
     try {
       const totalCost = Number((buyQuantity * selectedEtf.current_price).toFixed(2));
-      const res = await fetch("http://localhost:8000/api/trading/order", {
+      const res = await fetch(`${API_BASE_URL}/api/trading/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -350,7 +352,7 @@ export default function ETFPage() {
 
       // Sync wallet balance from backend
       try {
-        const wRes = await fetch("http://localhost:8000/api/wallet/balance");
+        const wRes = await fetch(`${API_BASE_URL}/api/wallet/balance`);
         if (wRes.ok) {
           const wData = await wRes.json();
           localStorage.setItem("investpro_wallet_balance", wData.balance.toString());
@@ -394,17 +396,26 @@ export default function ETFPage() {
           </p>
         </div>
 
-        {/* Live Market Toggle */}
-        <Button
-          onClick={() => setIsLiveMode(!isLiveMode)}
-          className={`flex items-center gap-2 rounded-full px-4 py-1.5 transition-all text-xs font-bold ${isLiveMode
-              ? "bg-emerald-600 text-white dark:bg-emerald-500 animate-pulse"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-            }`}
-        >
-          <Activity className="w-4 h-4" />
-          {isLiveMode ? "LIVE UPDATES ACTIVE (0.5s)" : "Enable Live Mode (0.5s)"}
-        </Button>
+        {/* AI Specialist & Live Market Toggle */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() => openAIChatbot("etfs")}
+            className="bg-[#2f6b4f] hover:bg-[#255740] text-white dark:bg-[#a7d48f] dark:text-[#090b0a] font-bold text-xs shadow-md rounded-full"
+          >
+            <Sparkles className="w-4 h-4 mr-2 text-amber-300 dark:text-[#090b0a]" />
+            Ask AI ETF Specialist
+          </Button>
+          <Button
+            onClick={() => setIsLiveMode(!isLiveMode)}
+            className={`flex items-center gap-2 rounded-full px-4 py-1.5 transition-all text-xs font-bold ${isLiveMode
+                ? "bg-emerald-600 text-white dark:bg-emerald-500 animate-pulse"
+                : "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+              }`}
+          >
+            <Activity className="w-4 h-4" />
+            {isLiveMode ? "LIVE UPDATES ACTIVE (0.5s)" : "Enable Live Mode (0.5s)"}
+          </Button>
+        </div>
       </div>
 
       {/* Highlights Grid */}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter, TextInput, Label, Select, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Badge, Card } from "flowbite-react";
 import { Wallet, PlusCircle, ArrowUpRight, ShieldCheck, CreditCard, Building2, Smartphone, CheckCircle2, History, DollarSign } from "lucide-react";
+import { API_BASE_URL } from "@/lib/auth";
 
 export interface WalletTransaction {
   id: string;
@@ -23,7 +24,7 @@ export default function WalletPage() {
   const [balance, setBalance] = useState<number>(12450);
   const [transactions, setTransactions] = useState<WalletTransaction[]>(DEFAULT_TRANSACTIONS);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
-  
+
   // Deposit Form State
   const [depositAmount, setDepositAmount] = useState<number>(500);
   const [paymentMethod, setPaymentMethod] = useState<string>("bank_transfer");
@@ -32,7 +33,7 @@ export default function WalletPage() {
   // Sync with Backend API & LocalStorage
   const fetchWallet = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/wallet/balance");
+      const res = await fetch(`${API_BASE_URL}/api/wallet/balance`);
       if (res.ok) {
         const data = await res.json();
         setBalance(data.balance);
@@ -69,7 +70,7 @@ export default function WalletPage() {
     if (!depositAmount || depositAmount <= 0) return;
 
     try {
-      const res = await fetch("http://localhost:8000/api/wallet/deposit", {
+      const res = await fetch(`${API_BASE_URL}/api/wallet/deposit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: depositAmount }),
@@ -112,7 +113,7 @@ export default function WalletPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 lg:space-y-8 animate-in fade-in duration-500">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#101410] dark:text-[#f6f3ea]">InvestPro Digital Wallet</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#101410] dark:text-[#f6f3ea]">FinSight Digital Wallet</h1>
         <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-[#5c6457] dark:text-[#b4ad9f]">
           Manage your cash reserves, deposit funds instantly, and review transaction history.
         </p>
@@ -157,7 +158,7 @@ export default function WalletPage() {
             </div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Instant Funds Availability</h3>
             <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-              Deposits added to your InvestPro wallet are credited immediately. You can use these funds to purchase Mutual Funds, Stocks, and ETFs seamlessly.
+              Deposits added to your FinSight wallet are credited immediately. You can use these funds to purchase Mutual Funds, Stocks, and ETFs seamlessly.
             </p>
           </div>
           <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs space-y-1.5">
@@ -242,7 +243,7 @@ export default function WalletPage() {
                 Funds Added Successfully!
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs mx-auto">
-                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">${depositAmount.toLocaleString()}</span> has been credited to your InvestPro Wallet.
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400">${depositAmount.toLocaleString()}</span> has been credited to your FinSight Wallet.
               </p>
               <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300">
                 New Total Wallet Balance: <span className="font-bold text-gray-900 dark:text-white">${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
@@ -269,11 +270,10 @@ export default function WalletPage() {
                       key={preset}
                       type="button"
                       onClick={() => setDepositAmount(preset)}
-                      className={`px-3 py-1 rounded-md text-xs font-bold border transition-all ${
-                        depositAmount === preset
-                          ? "border-[#2f6b4f] bg-[#2f6b4f]/10 text-[#2f6b4f] dark:border-[#a7d48f] dark:bg-[#a7d48f]/20 dark:text-[#a7d48f]"
-                          : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-400"
-                      }`}
+                      className={`px-3 py-1 rounded-md text-xs font-bold border transition-all ${depositAmount === preset
+                        ? "border-[#2f6b4f] bg-[#2f6b4f]/10 text-[#2f6b4f] dark:border-[#a7d48f] dark:bg-[#a7d48f]/20 dark:text-[#a7d48f]"
+                        : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-400"
+                        }`}
                     >
                       +${preset.toLocaleString()}
                     </button>
