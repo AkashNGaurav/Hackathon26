@@ -40,6 +40,35 @@ def create_market_news(db: Session, title: str, source: str, sentiment: str, exc
     return db_obj
 
 
+# --- User CRUD Operations ---
+
+def get_user_by_id(db: Session, user_id: uuid.UUID) -> Optional[models.User]:
+    return db.query(models.User).filter(models.User.id == user_id).first()
+
+
+def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
+    return db.query(models.User).filter(models.User.email == email).first()
+
+
+def get_user_by_username(db: Session, username: str) -> Optional[models.User]:
+    return db.query(models.User).filter(models.User.username == username).first()
+
+
+def create_user(db: Session, user_data: schemas.UserRegisterRequest) -> models.User:
+    from app.auth_utils import hash_password
+    db_user = models.User(
+        email=user_data.email,
+        username=user_data.username,
+        hashed_password=hash_password(user_data.password),
+        country=user_data.country,
+        kyc_completed=False,
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
 # --- Asset CRUD Operations ---
 
 def get_asset(db: Session, asset_id: uuid.UUID) -> Optional[models.Asset]:

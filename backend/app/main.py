@@ -22,6 +22,35 @@ def health():
     return {"status": "ok", "message": "AI fintech backend running"}
 
 
+# --- Auth Endpoints ---
+
+@app.post("/api/auth/register", response_model=schemas.AuthTokenResponse, status_code=status.HTTP_201_CREATED)
+def register_user(user_data: schemas.UserRegisterRequest, db: Session = Depends(get_db)):
+    from app.auth_utils import create_access_token
+    existing_email = crud.get_user_by_email(db, user_data.email)
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists."
+        )
+    existing_username = crud.get_user_by_username(db, user_data.username)
+    if existing_username:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this username already exists."
+        )
+    
+    db_user = crud.create_user(db, user_data)
+    token = create_access_token(user_id=db_user.id, username=db_user.username, email=db_user.email)
+    
+    return schemas.AuthTokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=db_user
+    )
+
+
+
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 def get_recommendations(
     risk_profile: str = Query("moderate", regex="^(low|moderate|high)$"),
