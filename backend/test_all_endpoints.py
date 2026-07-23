@@ -35,6 +35,53 @@ def test_all():
     assert res.status_code == 200
     print(f"[PASS] 1. GET /api/health -> Status: {res.status_code}, Response: {res.json()}")
 
+    # --- USER REGISTRATION TEST ---
+    print("\n--------------------------------------------------")
+    print("        TESTING USER REGISTRATION (AUTH)          ")
+    print("--------------------------------------------------")
+    reg_payload = {
+        "email": "user@example.com",
+        "username": "finsight_user",
+        "password": "StrongPassword123!",
+        "country": "Germany"
+    }
+
+    # Clean up existing test user if present
+    db = SessionLocal()
+    db.query(User).filter(User.username == "finsight_user").delete()
+    db.commit()
+    db.close()
+
+    res_reg = client.post("/api/auth/register", json=reg_payload)
+    assert res_reg.status_code == 201
+    reg_data = res_reg.json()
+    assert "access_token" in reg_data
+    assert reg_data["token_type"] == "bearer"
+    assert reg_data["user"]["email"] == "user@example.com"
+    assert reg_data["user"]["username"] == "finsight_user"
+    assert reg_data["user"]["country"] == "Germany"
+    assert reg_data["user"]["kyc_completed"] is False
+    print(f"[PASS] POST /api/auth/register -> Status: 201 Created")
+    print(f"       Access Token: {reg_data['access_token'][:30]}...")
+    print(f"       User Profile: {reg_data['user']}")
+
+    # Decode and verify JWT claims
+    from app.auth_utils import decode_access_token
+    claims = decode_access_token(reg_data["access_token"])
+    assert claims["sub"] == "finsight_user"
+    assert claims["email"] == "user@example.com"
+    assert "user_id" in claims
+    assert "exp" in claims
+    assert "iat" in claims
+    print(f"[PASS] JWT Token Decoded Claims: {claims}")
+
+    # Test Duplicate Registration
+    res_dup = client.post("/api/auth/register", json=reg_payload)
+    assert res_dup.status_code == 400
+    print(f"[PASS] Duplicate User Registration -> Status: {res_dup.status_code} (400 Bad Request as expected)")
+    print("--------------------------------------------------\n")
+
+
     # 2. Recommendations
     res = client.get("/api/recommendations?risk_profile=moderate&investment_horizon=5")
     assert res.status_code == 200
@@ -179,6 +226,12 @@ def test_all():
     print(f"[PASS] V5. Non-existent User ID for Asset Allocation -> Status: {res.status_code} (404 Not Found)")
 
 
+    # Cleanup test users created during test run
+    db = SessionLocal()
+    db.query(User).filter(User.username.in_(["finsight_user", "test_alloc_user"])).delete(synchronize_session=False)
+    db.commit()
+    db.close()
+
     print("\n==================================================")
     print("      ALL ENDPOINTS AND VALIDATIONS PASSED!       ")
     print("==================================================")
@@ -186,3 +239,4 @@ def test_all():
 
 if __name__ == "__main__":
     test_all()
+
