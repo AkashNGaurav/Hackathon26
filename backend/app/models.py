@@ -1,8 +1,110 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float, Text
-from sqlalchemy.orm import declarative_base
+import uuid
+import enum
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, Boolean, Enum, ForeignKey, Numeric
+from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.dialects.sqlite import CHAR
+from sqlalchemy.types import TypeDecorator
 from datetime import datetime
 
 Base = declarative_base()
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+    Uses CHAR(36) in SQLite/MySQL, storing stringified UUIDs.
+    """
+    impl = CHAR(36)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif isinstance(value, uuid.UUID):
+            return str(value)
+        else:
+            return str(uuid.UUID(value))
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid.UUID):
+                value = uuid.UUID(value)
+            return value
+
+
+class AssetType(str, enum.Enum):
+    STOCKS = "STOCKS"
+    MUTUAL_FUNDS = "MUTUAL_FUNDS"
+    ETFS = "ETFS"
+    BONDS = "BONDS"
+    CRYPTO = "CRYPTO"
+    REAL_ESTATE = "REAL_ESTATE"
+    COMMODITIES = "COMMODITIES"
+    CASH_EQUIVALENT = "CASH_EQUIVALENT"
+
+
+class RiskLevel(str, enum.Enum):
+    LOW = "LOW"
+    MODERATE = "MODERATE"
+    HIGH = "HIGH"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    country = Column(String(100), nullable=True)
+    kyc_completed = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    asset_allocations = relationship("AssetAllocation", back_populates="user", cascade="all, delete-orphan")
+
+
+class Asset(Base):
+    __tablename__ = "assets"
+
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    asset_code = Column(String(50), unique=True, nullable=False, index=True)
+    asset_name = Column(String(255), nullable=False)
+    asset_type = Column(Enum(AssetType), nullable=False, index=True)
+    issuer = Column(String(255), nullable=True)
+    symbol = Column(String(50), nullable=True)
+    exchange = Column(String(50), nullable=True)
+    currency = Column(String(10), nullable=False, default="USD")
+    current_price = Column(Numeric(18, 4), nullable=True)
+    risk_level = Column(Enum(RiskLevel), nullable=False, default=RiskLevel.MODERATE)
+    logo_url = Column(String(500), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    asset_allocations = relationship("AssetAllocation", back_populates="asset", cascade="all, delete-orphan")
+
+
+class AssetAllocation(Base):
+    __tablename__ = "asset_allocations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(GUID(), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    asset_id = Column(GUID(), ForeignKey("assets.id", ondelete="CASCADE"), nullable=False, index=True)
+    quantity = Column(Numeric(18, 4), nullable=False)
+    average_buy_price = Column(Numeric(18, 4), nullable=False)
+    invested_amount = Column(Numeric(18, 4), nullable=False)
+    current_value = Column(Numeric(18, 4), nullable=True)
+    purchase_date = Column(DateTime, nullable=True, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="asset_allocations")
+    asset = relationship("Asset", back_populates="asset_allocations")
 
 
 class ExpenseEntry(Base):
@@ -20,8 +122,8 @@ class MarketNews(Base):
     __tablename__ = "market_news"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(300), nullable=False)
-    source = Column(String(150), nullable=False)
-    sentiment = Column(String(50), nullable=False)
+    title = Column(String(255), nullable=False)
+    source = Column(String(100), nullable=False)
+    sentiment = Column(String(20), nullable=False)
     excerpt = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
