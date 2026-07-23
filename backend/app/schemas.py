@@ -1,17 +1,55 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Literal
 from fastapi.params import Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from app.models import AssetType, RiskLevel
 
 
+class UserRegister(BaseModel):
+    email: str
+    username: str
+    password: str
+    country: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: uuid.UUID
+    email: str
+    username: str
+    country: Optional[str] = None
+    kyc_completed: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    user_id: Optional[uuid.UUID] = None
+
+
+class KYCUpdateSchema(BaseModel):
+    kyc_completed: bool = True
+
+
 class ExpenseEntryBase(BaseModel):
-    category: str = Field(..., min_length=1, max_length=100, example="Investment")
-    amount: float = Field(..., gt=0, example=1200.50, description="Amount must be greater than 0")
-    currency: str = Field("EUR", min_length=3, max_length=3, pattern=r"^[A-Z]{3}$", example="EUR", description="ISO 4217 currency code")
-    description: Optional[str] = Field(None, max_length=500, example="Monthly stock purchase")
+    category: str = Field(..., example="Investment")
+    amount: float = Field(..., example=1200.50)
+    currency: str = Field("EUR", example="EUR")
+    description: Optional[str] = Field(None, example="Monthly stock purchase")
 
 
 class ExpenseEntryCreate(ExpenseEntryBase):
@@ -63,10 +101,8 @@ class LLMConfig:
 
 # --- User & Auth Schemas ---
 
-
 class UserRegisterRequest(BaseModel):
     email: str = Field(..., pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", example="user@example.com", description="Valid email address")
-
     username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_-]+$", example="finsight_user", description="Alphanumeric username, 3-50 chars")
     password: str = Field(..., min_length=6, max_length=100, example="StrongPassword123!", description="Password minimum 6 characters")
     country: Optional[str] = Field(None, max_length=100, example="Germany")
@@ -75,17 +111,6 @@ class UserRegisterRequest(BaseModel):
 class UserLoginRequest(BaseModel):
     username: str = Field(..., min_length=1, example="finsight_user")
     password: str = Field(..., min_length=1, example="StrongPassword123!")
-
-
-class UserResponse(BaseModel):
-    id: uuid.UUID
-    email: str
-    username: str
-    country: Optional[str] = None
-    kyc_completed: bool = False
-
-    class Config:
-        from_attributes = True
 
 
 class AuthTokenResponse(BaseModel):
@@ -108,6 +133,57 @@ class JWTClaimsPayload(BaseModel):
     email: str
     exp: Optional[int] = None
     iat: Optional[int] = None
+
+
+# --- Market Data & AI Schemas (from dashboard-added) ---
+
+class AssetDataResponse(BaseModel):
+    symbol: str
+    name: str
+    asset_type: str = "Stock"  # "Stock", "ETF", "Mutual Fund"
+    exchange: str = "EURONEXT"
+    currency: str = "EUR"
+    current_price: float
+    nav: Optional[float] = None
+    previous_close: Optional[float] = None
+    day_high: Optional[float] = None
+    day_low: Optional[float] = None
+    volume: Optional[int] = None
+    price_change: float
+    percentage_change: float
+    is_positive: bool
+    market_status: str = "OPEN"
+
+
+class AssetHistoryData(BaseModel):
+    date: str
+    price: float
+
+
+class AssetProfileData(BaseModel):
+    sector: Optional[str] = None
+    industry: Optional[str] = None
+    website: Optional[str] = None
+    market_cap: Optional[int] = None
+    business_summary: Optional[str] = None
+    total_assets: Optional[int] = None
+    yield_pct: Optional[float] = None
+    ytd_return: Optional[float] = None
+    category: Optional[str] = None
+    fund_family: Optional[str] = None
+
+
+class AIRecommendRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["MC.PA", "VW.DE", "VUAA.L", "ASML.AS"])
+    risk_profile: str = Field("moderate", example="moderate")
+
+
+class AIRecommendResponse(BaseModel):
+    recommended_symbol: str
+    recommended_name: str
+    recommendation_summary: str
+    analysis_details: list[str]
+    risk_profile: str
 
 
 # --- Asset Schemas ---
@@ -178,4 +254,3 @@ class AssetAllocationResponse(AssetAllocationBase):
 
     class Config:
         from_attributes = True
-

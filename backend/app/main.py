@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas, crud, agents, db as db_module
 from app.conf.config import services
 from app.depends import get_db, get_llm
+from app.routers import market_data, ai_advisor
 
 
 @asynccontextmanager
@@ -19,20 +20,37 @@ async def lifespan(app: FastAPI):
     await services.initialize()
     yield
 
-app = FastAPI(title="FinSight AI Assistant",
-description="API for querying and managing FinSight AI Application",
-lifespan=lifespan)
+
+app = FastAPI(
+    title="FinSight AI Assistant",
+    description="API for querying and managing FinSight AI Application",
+    lifespan=lifespan,
+)
 
 
+
+# Allow explicit origins for Next.js and Vite dev servers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "*",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 models.Base.metadata.create_all(bind=db_module.engine)
+
+# Register routers
+app.include_router(market_data.router)
+app.include_router(ai_advisor.router)
 
 
 @app.get("/api/health")
@@ -144,7 +162,7 @@ def update_kyc_status(
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 async def get_recommendations(
-    risk_profile: str = Query("moderate", regex="^(low|moderate|high)$"),
+    risk_profile: str = Query("moderate", pattern="^(low|moderate|high)$"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
     llm: "OpenAI" = Depends(get_llm),
@@ -274,5 +292,6 @@ def get_asset_allocation(allocation_id: int, db: Session = Depends(get_db)):
             detail=f"Asset allocation with ID '{allocation_id}' not found."
         )
     return db_allocation
+
 
 

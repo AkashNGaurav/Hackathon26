@@ -10,11 +10,6 @@ venv/
 .env
 .env.*
 *.sqlite3
-*.db
-fintech.db
-backend/*.db
-backend/fintech.db
-
 
 # Node
 node_modules/
