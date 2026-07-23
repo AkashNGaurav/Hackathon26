@@ -17,8 +17,8 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql+psycopg://fintech:fintech123@db:5432/fintech
-      GEMINI_API_URL: https://generativelanguage.googleapis.com/v1beta/openai/
+      DATABASE_URL: ${DATABASE_URL}
+      GEMINI_API_URL: ${GEMINI_API_URL}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
       - db
