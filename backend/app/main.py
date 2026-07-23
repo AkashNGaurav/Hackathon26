@@ -11,6 +11,7 @@ from app import models, schemas, crud, agents, db as db_module
 from app.conf.config import services
 from app.depends import get_db, get_llm
 from contextlib import asynccontextmanager
+from app.routers import market_data, ai_advisor
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,6 +29,7 @@ lifespan=lifespan)
 
 logger = logging.getLogger(__name__)
 
+# Allow explicit origins for Next.js and Vite dev servers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,6 +39,10 @@ app.add_middleware(
 )
 
 models.Base.metadata.create_all(bind=db_module.engine)
+
+# Register routers
+app.include_router(market_data.router)
+app.include_router(ai_advisor.router)
 
 
 def get_db():
@@ -186,8 +192,8 @@ def update_kyc_status(
 
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
-async def get_recommendations(
-    risk_profile: str = Query("moderate", regex="^(low|moderate|high)$"),
+def get_recommendations(
+    risk_profile: str = Query("moderate", pattern="^(low|moderate|high)$"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
     llm: "OpenAI" = Depends(get_llm),

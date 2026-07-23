@@ -190,3 +190,32 @@ class AssetAllocationResponse(AssetAllocationBase):
 
 
 
+class AssetDataResponse(BaseModel):
+    symbol: str
+    name: str
+    asset_type: str = "Stock"  # "Stock", "ETF", "Mutual Fund"
+    exchange: str = "EURONEXT"
+    currency: str = "EUR"
+    current_price: float
+    nav: Optional[float] = None
+    previous_close: Optional[float] = None
+    day_high: Optional[float] = None
+    day_low: Optional[float] = None
+    volume: Optional[int] = None
+    price_change: float
+    percentage_change: float
+    is_positive: bool
+    market_status: str = "OPEN"
+
+
+class AIRecommendRequest(BaseModel):
+    symbols: list[str] = Field(default_factory=lambda: ["MC.PA", "VW.DE", "VUAA.L", "ASML.AS"])
+    risk_profile: str = Field("moderate", example="moderate")
+
+
+class AIRecommendResponse(BaseModel):
+    recommended_symbol: str
+    recommended_name: str
+    recommendation_summary: str
+    analysis_details: list[str]
+    risk_profile: str

@@ -2,6 +2,7 @@ import PortfolioNewsTicker from "@/components/PortfolioNewsTicker";
 import MarketIndicesBar from "@/components/MarketIndicesBar";
 import MarketInsightCard from "@/components/MarketInsightCard";
 import MarketNewsFeed from "@/components/MarketNewsFeed";
+import EUMarketTable from "@/components/EUMarketTable";
 
 export default function DashboardPage() {
   return (
@@ -15,12 +16,17 @@ export default function DashboardPage() {
       {/* 3. Main Dashboard Content Area */}
       <main className="flex-1 p-6 md:p-8">
         <div className="mx-auto max-w-7xl space-y-8">
-          {/* Top Section: AI Market Insight Summary */}
+          {/* AI Market Insight Summary */}
           <section id="market-insights">
             <MarketInsightCard />
           </section>
 
-          {/* Main Section: Market News Feed & Grid */}
+          {/* Live EU Market Assets Table */}
+          <section id="eu-markets">
+            <EUMarketTable />
+          </section>
+
+          {/* Market News Feed & Grid */}
           <section id="market-news">
             <MarketNewsFeed />
           </section>
