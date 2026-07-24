@@ -15,11 +15,19 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.create_index(
-        "ix_agent_checkpoints_session_agent_created",
-        "agent_checkpoints",
-        ["session_id", "agent_type", "created_at"],
-    )
+    conn = op.get_bind()
+    from sqlalchemy.engine import reflection
+    inspector = reflection.Inspector.from_engine(conn)
+    tables = inspector.get_table_names()
+    if "agent_checkpoints" in tables:
+        indexes = [idx["name"] for idx in inspector.get_indexes("agent_checkpoints")]
+        if "ix_agent_checkpoints_session_agent_created" not in indexes:
+            op.create_index(
+                "ix_agent_checkpoints_session_agent_created",
+                "agent_checkpoints",
+                ["session_id", "agent_type", "created_at"],
+            )
+
 
 
 def downgrade() -> None:
