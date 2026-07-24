@@ -1,0 +1,39 @@
+services:
+  # Backend FastAPI Web Service
+  - type: web
+    name: finsight-backend
+    env: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile.sqlite
+    region: oregon
+    plan: free
+    healthCheckPath: /api/health
+    disk:
+      name: sqlite-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////app/data/fintech.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # Frontend Next.js Web Service
+  - type: web
+    name: finsight-frontend
+    env: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    region: oregon
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: finsight-backend
+          property: url
