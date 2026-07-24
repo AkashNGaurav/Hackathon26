@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  vector-db:
+    image: qdrant/qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.sqlite
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: sqlite:////app/data/fintech.db
+      GEMINI_API_URL: https://generativelanguage.googleapis.com/v1beta/openai/
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      QDRANT_HOST: vector-db
+      QDRANT_PORT: 6333
+    volumes:
+      - ./backend/fintech.db:/app/data/fintech.db
+    depends_on:
+      - vector-db
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  qdrant_data:
