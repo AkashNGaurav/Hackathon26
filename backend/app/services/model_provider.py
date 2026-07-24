@@ -20,7 +20,7 @@ MODEL_CONFIG = {
     "llm": {
         "provider": "gemini",
         "config": {
-            "model": os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+            "model": os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
             "api_key": os.environ.get("GEMINI_API_KEY")
         }
     },
@@ -100,12 +100,21 @@ class ChatModelProvider:
 
     def __init__(self):
         if not hasattr(self, 'initialized'):
-            self.api_key = os.environ.get("GEMINI_API_KEY")
-            self.api_url = os.environ.get("GEMINI_API_URL")
             self._llm_cache = {}
             self._memory_client = None
             self._memory_init_attempted = False
             self.initialized = True
+
+    @property
+    def api_key(self) -> str:
+        return os.environ.get("GEMINI_API_KEY") or os.environ.get("OPENAI_API_KEY") or ""
+
+    @property
+    def api_url(self) -> Optional[str]:
+        url = os.environ.get("GEMINI_API_URL")
+        if not url and (os.environ.get("GEMINI_API_KEY") or self.api_key.startswith("AIza")):
+            return "https://generativelanguage.googleapis.com/v1beta/openai/"
+        return url or None
 
     @property
     def memory_client(self) -> Optional[Any]:
@@ -125,15 +134,17 @@ class ChatModelProvider:
 
     def get(self, model: Optional[str] = None, temperature: float = 0, 
             max_tokens: Optional[int] = None, max_retries: int = 6):
-        key = (model, temperature, max_tokens, max_retries)
+        current_api_key = self.api_key or "dummy_key_for_testing"
+        current_api_url = self.api_url
+        key = (model, temperature, max_tokens, max_retries, current_api_key, current_api_url)
         if key not in self._llm_cache:
-            api_key = self.api_key or os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY") or "dummy_key_for_testing"
             try:
                 self._llm_cache[key] = OpenAI(
-                    api_key=api_key,
-                    base_url=self.api_url if self.api_url else None
+                    api_key=current_api_key,
+                    base_url=current_api_url
                 )
-            except Exception:
+            except Exception as exc:
+                logger.error("Failed to initialize OpenAI client with base_url=%s: %s", current_api_url, exc)
                 self._llm_cache[key] = None
         
         return self._llm_cache[key]
@@ -179,7 +190,7 @@ class ChatModelProvider:
             return False
 
     def analyze_text(self, prompt: str, user_id: str) -> dict[str, Any]:
-        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
         client = self.get(model=model_name)
         memory = self.get_memory(user_id=user_id, prompt=prompt)
         response = client.chat.completions.create(
@@ -195,7 +206,7 @@ class ChatModelProvider:
         return ai_response
     
     def chat(self, system_prompt: str, messages: list[dict[str, str]], user_id: str="") -> str:
-        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
         client = self.get(model=model_name)
         prompt = "".join([message["content"] for message in messages if isinstance(message, dict) and "content" in message])
         memory = self.get_memory(user_id=user_id, prompt=prompt)
