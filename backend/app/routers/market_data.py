@@ -38,7 +38,7 @@ EXCHANGE_NAMES = {
     ".MC": "Bolsa de Madrid",
 }
 
-# Reliable fallback dataset for major EU assets in case yfinance is offline or rate-limited
+# Reliable fallback dataset for European market assets in EUR currency
 FALLBACK_EU_ASSETS = {
     "MC.PA": {
         "name": "LVMH Moët Hennessy Louis Vuitton",
@@ -63,10 +63,10 @@ FALLBACK_EU_ASSETS = {
         "volume": 620400,
     },
     "VUAA.L": {
-        "name": "Vanguard S&P 500 UCITS ETF",
+        "name": "Vanguard S&P 500 UCITS ETF (EUR)",
         "asset_type": "ETF",
         "exchange": "London Stock Exchange",
-        "currency": "USD",
+        "currency": "EUR",
         "price": 94.25,
         "nav": 94.20,
         "prev": 93.60,
@@ -96,6 +96,214 @@ FALLBACK_EU_ASSETS = {
         "low": 192.00,
         "volume": 890000,
     },
+    "OR.PA": {
+        "name": "L'Oréal S.A.",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 388.50,
+        "prev": 385.20,
+        "high": 390.10,
+        "low": 384.80,
+        "volume": 290000,
+    },
+    "AIR.PA": {
+        "name": "Airbus SE",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 134.60,
+        "prev": 133.10,
+        "high": 135.20,
+        "low": 132.80,
+        "volume": 510000,
+    },
+    "IWDA.AS": {
+        "name": "iShares Core MSCI World UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "Euronext Amsterdam",
+        "currency": "EUR",
+        "price": 88.50,
+        "nav": 88.45,
+        "prev": 87.90,
+        "high": 88.90,
+        "low": 87.80,
+        "volume": 980000,
+    },
+    "MEUD.PA": {
+        "name": "Amundi Stoxx Europe 600 UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 412.30,
+        "nav": 412.25,
+        "prev": 410.50,
+        "high": 413.50,
+        "low": 410.00,
+        "volume": 320000,
+    },
+    "C3M.PA": {
+        "name": "Amundi EUR Cash UCITS Mutual Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 105.40,
+        "nav": 105.40,
+        "prev": 105.35,
+        "high": 105.50,
+        "low": 105.30,
+        "volume": 0,
+    },
+    "EUEA.PA": {
+        "name": "iShares MSCI Europe UCITS Mutual Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 76.20,
+        "nav": 76.20,
+        "prev": 75.80,
+        "high": 76.50,
+        "low": 75.60,
+        "volume": 0,
+    },
+    "SIE.DE": {
+        "name": "Siemens AG",
+        "asset_type": "Stock",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 168.40,
+        "prev": 166.80,
+        "high": 170.10,
+        "low": 166.50,
+        "volume": 420000,
+    },
+    "SAN.PA": {
+        "name": "Sanofi S.A.",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 89.15,
+        "prev": 88.40,
+        "high": 89.80,
+        "low": 88.20,
+        "volume": 610000,
+    },
+    "TTE.PA": {
+        "name": "TotalEnergies SE",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 62.30,
+        "prev": 61.80,
+        "high": 62.90,
+        "low": 61.60,
+        "volume": 1150000,
+    },
+    "ALV.DE": {
+        "name": "Allianz SE",
+        "asset_type": "Stock",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 264.50,
+        "prev": 262.10,
+        "high": 266.00,
+        "low": 261.80,
+        "volume": 380000,
+    },
+    "BNP.PA": {
+        "name": "BNP Paribas S.A.",
+        "asset_type": "Stock",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 65.80,
+        "prev": 64.90,
+        "high": 66.30,
+        "low": 64.70,
+        "volume": 790000,
+    },
+    "DTE.DE": {
+        "name": "Deutsche Telekom AG",
+        "asset_type": "Stock",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 24.10,
+        "prev": 23.85,
+        "high": 24.30,
+        "low": 23.80,
+        "volume": 1820000,
+    },
+    "EXXT.DE": {
+        "name": "iShares NASDAQ 100 UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 985.20,
+        "nav": 985.10,
+        "prev": 978.40,
+        "high": 990.00,
+        "low": 976.00,
+        "volume": 410000,
+    },
+    "VAGF.DE": {
+        "name": "Vanguard Global Aggregate Bond UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 24.80,
+        "nav": 24.80,
+        "prev": 24.75,
+        "high": 24.90,
+        "low": 24.70,
+        "volume": 310000,
+    },
+    "SEGA.DE": {
+        "name": "iShares Euro Government Bond UCITS ETF (EUR)",
+        "asset_type": "ETF",
+        "exchange": "XETRA Germany",
+        "currency": "EUR",
+        "price": 122.40,
+        "nav": 122.35,
+        "prev": 122.00,
+        "high": 122.70,
+        "low": 121.90,
+        "volume": 250000,
+    },
+    "LU0996177134.PA": {
+        "name": "Amundi Index MSCI World UCITS Mutual Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 488.10,
+        "nav": 488.10,
+        "prev": 483.50,
+        "high": 489.00,
+        "low": 483.00,
+        "volume": 0,
+    },
+    "FR0010149302.PA": {
+        "name": "BNP Paribas Euro Equity Mutual Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 312.40,
+        "nav": 312.40,
+        "prev": 309.80,
+        "high": 313.50,
+        "low": 309.00,
+        "volume": 0,
+    },
+    "LU0251128657.PA": {
+        "name": "Carmignac Patrimoine Euro Fund",
+        "asset_type": "Mutual Fund",
+        "exchange": "Euronext Paris",
+        "currency": "EUR",
+        "price": 642.50,
+        "nav": 642.50,
+        "prev": 638.00,
+        "high": 644.00,
+        "low": 637.50,
+        "volume": 0,
+    },
 }
 
 
@@ -117,9 +325,27 @@ def normalize_eu_symbol(symbol: str, exchange: Optional[str] = None) -> tuple[st
     return clean_sym, ex_name
 
 
+def is_eu_market_open(market_state: Optional[str] = None) -> str:
+    """Evaluates real-time European market open/close status based on state & trading hours (08:00 to 16:30 UTC Mon-Fri)."""
+    if market_state:
+        m_state = market_state.upper()
+        if m_state == "REGULAR":
+            return "OPEN"
+        elif m_state in ["CLOSED", "POST", "PRE"]:
+            return "CLOSED"
+    
+    from datetime import datetime, timezone
+    now_utc = datetime.now(timezone.utc)
+    if now_utc.weekday() < 5:
+        hour_min = now_utc.hour + now_utc.minute / 60.0
+        if 8.0 <= hour_min <= 16.5:
+            return "OPEN"
+    return "CLOSED"
+
+
 @router.get("/{symbol}", response_model=schemas.AssetDataResponse)
 def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
-    """Fetch live or fallback market data for EU Stocks, ETFs, and Mutual Funds."""
+    """Fetch live or fallback market data for EU Stocks, ETFs, and Mutual Funds in EUR."""
     clean_sym, default_exchange_name = normalize_eu_symbol(symbol, exchange)
 
     # Try fetching with yfinance
@@ -130,14 +356,27 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
         info = ticker.info
 
         if info and ("currentPrice" in info or "regularMarketPrice" in info or "navPrice" in info):
-            price = (
+            raw_price = (
                 info.get("currentPrice")
                 or info.get("regularMarketPrice")
                 or info.get("navPrice")
                 or info.get("previousClose")
             )
-            prev_close = info.get("previousClose") or price
+            raw_prev = info.get("previousClose") or raw_price
             quote_type = info.get("quoteType", "").upper()
+            curr = info.get("currency", "EUR").upper()
+
+            # Convert GBp (pence), GBP, or USD to EUR for European consistency
+            fx_rate = 1.0
+            if curr == "GBP":
+                fx_rate = 1.18
+            elif curr == "GBP":
+                fx_rate = 0.0118  # GBp pence to EUR
+            elif curr == "USD":
+                fx_rate = 0.92
+
+            price = round(float(raw_price) * fx_rate, 2)
+            prev_close = round(float(raw_prev) * fx_rate, 2)
 
             if quote_type == "MUTUALFUND":
                 asset_type = "Mutual Fund"
@@ -147,26 +386,29 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
                 asset_type = "Stock"
 
             nav_val = info.get("navPrice") or (price if asset_type in ["Mutual Fund", "ETF"] else None)
+            if nav_val is not None and curr in ["GBP", "GBp", "USD"]:
+                nav_val = round(float(nav_val) * fx_rate, 2)
 
             price_change = round(price - prev_close, 2)
             pct_change = round((price_change / prev_close) * 100, 2) if prev_close else 0.0
+            mkt_status = is_eu_market_open(info.get("marketState") or info.get("regularMarketState"))
 
             return schemas.AssetDataResponse(
                 symbol=clean_sym,
                 name=info.get("shortName") or info.get("longName") or clean_sym,
                 asset_type=asset_type,
                 exchange=info.get("exchange") or default_exchange_name,
-                currency=info.get("currency", "EUR"),
-                current_price=round(float(price), 2),
+                currency="EUR",
+                current_price=price,
                 nav=round(float(nav_val), 2) if nav_val is not None else None,
-                previous_close=round(float(prev_close), 2) if prev_close else None,
-                day_high=round(float(info.get("dayHigh")), 2) if info.get("dayHigh") else None,
-                day_low=round(float(info.get("dayLow")), 2) if info.get("dayLow") else None,
+                previous_close=prev_close,
+                day_high=round(float(info.get("dayHigh")) * fx_rate, 2) if info.get("dayHigh") else None,
+                day_low=round(float(info.get("dayLow")) * fx_rate, 2) if info.get("dayLow") else None,
                 volume=info.get("volume"),
                 price_change=price_change,
                 percentage_change=pct_change,
                 is_positive=price_change >= 0,
-                market_status="OPEN",
+                market_status=mkt_status,
             )
     except Exception as err:
         logger.warning(f"yfinance fetch failed for {clean_sym}: {err}. Falling back to cached asset metrics.")
@@ -183,7 +425,7 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
             name=data["name"],
             asset_type=data["asset_type"],
             exchange=data["exchange"],
-            currency=data["currency"],
+            currency="EUR",
             current_price=price,
             nav=data.get("nav"),
             previous_close=prev,
@@ -193,7 +435,7 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
             price_change=change,
             percentage_change=pct,
             is_positive=change >= 0,
-            market_status="OPEN",
+            market_status=is_eu_market_open(),
         )
 
     # Generic fallback if symbol unknown
@@ -212,46 +454,87 @@ def get_market_data(symbol: str, exchange: Optional[str] = Query(None)):
         price_change=1.50,
         percentage_change=1.01,
         is_positive=True,
-        market_status="OPEN",
+        market_status=is_eu_market_open(),
     )
 
 
 @router.get("/{symbol}/history", response_model=list[schemas.AssetHistoryData])
-def get_market_history(symbol: str, period: str = "1mo", exchange: Optional[str] = Query(None)):
-    """Fetch historical price data for charting."""
+def get_market_history(
+    symbol: str, 
+    period: str = "1mo", 
+    interval: Optional[str] = None, 
+    exchange: Optional[str] = Query(None)
+):
+    """Fetch historical price data for charting (Line & Candlestick)."""
+    import math
     clean_sym, _ = normalize_eu_symbol(symbol, exchange)
     
     try:
         import yfinance as yf
         ticker = yf.Ticker(clean_sym)
-        hist = ticker.history(period=period)
         
+        # Determine interval based on period if not specified
+        if not interval:
+            if period in ["1d", "5d"]:
+                interval = "15m"
+            elif period in ["1mo", "3mo"]:
+                interval = "1d"
+            else:
+                interval = "1wk"
+                
+        hist = ticker.history(period=period, interval=interval)
+        
+        if hist.empty:
+            hist = ticker.history(period=period)
+
         if hist.empty:
             return []
             
         history_data = []
         for date, row in hist.iterrows():
+            fmt = "%m-%d %H:%M" if period in ["1d", "5d"] else "%Y-%m-%d"
+            date_str = date.strftime(fmt)
+            c = round(float(row["Close"]), 2)
+            o = round(float(row["Open"]), 2) if "Open" in row and not math.isnan(row["Open"]) else c
+            h = round(float(row["High"]), 2) if "High" in row and not math.isnan(row["High"]) else max(o, c)
+            l = round(float(row["Low"]), 2) if "Low" in row and not math.isnan(row["Low"]) else min(o, c)
+            v = int(row["Volume"]) if "Volume" in row and not math.isnan(row["Volume"]) else 0
+            
             history_data.append(schemas.AssetHistoryData(
-                date=date.strftime("%Y-%m-%d"),
-                price=round(float(row["Close"]), 2)
+                date=date_str,
+                price=c,
+                open=o,
+                high=h,
+                low=l,
+                close=c,
+                volume=v
             ))
             
         return history_data
     except Exception as err:
         logger.warning(f"yfinance history fetch failed for {clean_sym}: {err}")
         
-        # Generate some mock data for fallback so frontend doesn't break
         from datetime import datetime, timedelta
         import random
         
         base_price = FALLBACK_EU_ASSETS.get(clean_sym, {}).get("price", 150.0)
         history_data = []
-        for i in range(30):
-            date_str = (datetime.now() - timedelta(days=30-i)).strftime("%Y-%m-%d")
-            base_price = base_price * (1 + random.uniform(-0.015, 0.015))
+        days = 1 if period == "1d" else (5 if period == "5d" else (30 if period == "1mo" else 365))
+        for i in range(days):
+            date_str = (datetime.now() - timedelta(days=days-i)).strftime("%Y-%m-%d")
+            op = base_price * (1 + random.uniform(-0.01, 0.01))
+            cl = op * (1 + random.uniform(-0.02, 0.02))
+            hi = max(op, cl) * (1 + random.uniform(0.001, 0.01))
+            lo = min(op, cl) * (1 - random.uniform(0.001, 0.01))
+            base_price = cl
             history_data.append(schemas.AssetHistoryData(
                 date=date_str,
-                price=round(base_price, 2)
+                price=round(cl, 2),
+                open=round(op, 2),
+                high=round(hi, 2),
+                low=round(lo, 2),
+                close=round(cl, 2),
+                volume=random.randint(50000, 1000000)
             ))
         return history_data
 
@@ -288,3 +571,89 @@ def get_market_profile(symbol: str, exchange: Optional[str] = Query(None)):
             market_cap=50000000000,
             business_summary=f"No detailed description available for {clean_sym}. This company operates within the designated European markets and is primarily engaged in producing diversified assets and services for international consumption. Please note this is fallback placeholder data due to temporary API rate limits from Yahoo Finance."
         )
+
+
+@router.get("/news/live", response_model=list[schemas.MarketNewsArticle])
+@router.get("/news", response_model=list[schemas.MarketNewsArticle])
+def get_live_market_news(category: Optional[str] = Query(None)):
+    """Fetch live European and Global market news articles using yfinance."""
+    import yfinance as yf
+
+    tickers_to_check = ["MC.PA", "ASML.AS", "SAP.DE", "IWDA.AS", "VW.DE", "AIR.PA", "NVDA", "AAPL"]
+    articles = []
+
+    for sym in tickers_to_check:
+        try:
+            t = yf.Ticker(sym)
+            n_list = t.news
+            if n_list and isinstance(n_list, list):
+                for item in n_list[:2]:
+                    content = item.get("content", item)
+                    title = content.get("title") or item.get("title")
+                    if not title:
+                        continue
+                    
+                    summary = content.get("summary") or item.get("summary") or title
+                    provider = content.get("provider", {}).get("displayName") or item.get("publisher") or "Yahoo Finance"
+                    url = content.get("canonicalUrl", {}).get("url") or item.get("link")
+                    
+                    cat = "Tech & Growth" if sym in ["ASML.AS", "SAP.DE", "NVDA", "AAPL"] else ("Top News" if sym in ["MC.PA", "IWDA.AS"] else "Macro & Economy")
+                    
+                    articles.append(schemas.MarketNewsArticle(
+                        id=f"yf-{sym}-{len(articles)}",
+                        title=title,
+                        snippet=summary[:280] + "..." if len(summary) > 280 else summary,
+                        category=cat,
+                        source=str(provider),
+                        publishedAt="Live",
+                        readTime="3 min read",
+                        relatedTickers=[f"${sym}"],
+                        link=url
+                    ))
+        except Exception as e:
+            logger.warning(f"Error fetching news for {sym} via yfinance: {e}")
+
+    if articles:
+        if category and category != "Top News":
+            filtered = [a for a in articles if a.category == category]
+            if filtered:
+                return filtered
+        return articles[:12]
+
+    # Clean fallback dataset if yfinance rate limited
+    fallback_list = [
+        schemas.MarketNewsArticle(
+            id="art-1",
+            title="Tech Giants Rally as ECB Signals Easing Monetary Policy",
+            snippet="Major European technology equity indices reached fresh multi-month highs as European Central Bank commentary signaled inflation metrics are moderating faster than quarterly targets...",
+            category="Top News",
+            source="Financial Times",
+            publishedAt="15 mins ago",
+            readTime="4 min read",
+            relatedTickers=["$ASML.AS", "$SAP.DE", "$NVDA"]
+        ),
+        schemas.MarketNewsArticle(
+            id="art-2",
+            title="European Luxury Sector Outperforms Following Strong Global Demand",
+            snippet="LVMH and Kering lead gains on Euronext Paris as high-margin retail performance in international hubs beats consensus quarterly estimates...",
+            category="Earnings",
+            source="Bloomberg",
+            publishedAt="45 mins ago",
+            readTime="3 min read",
+            relatedTickers=["$MC.PA", "$KER.PA"]
+        ),
+        schemas.MarketNewsArticle(
+            id="art-3",
+            title="UCITS ETF Inflows Hit Record Euro High in Q3 Portfolio Rebalancing",
+            snippet="Institutional asset managers increase allocation toward broad index European ETFs and green energy funds as systemic yield expectations stabilize...",
+            category="Macro & Economy",
+            source="Reuters",
+            publishedAt="2 hours ago",
+            readTime="5 min read",
+            relatedTickers=["$IWDA.AS", "$MEUD.PA"]
+        ),
+    ]
+    if category and category != "Top News":
+        f = [a for a in fallback_list if a.category == category]
+        if f: return f
+    return fallback_list

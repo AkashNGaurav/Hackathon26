@@ -1,3 +1,4 @@
+import uuid
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas, db as db_module
 
 # Secret key and algorithm configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "finsight_super_secret_jwt_key_2026_change_in_production")
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET_KEY", "8998e2ae7a2ee313d65cff92222b61dbc68d21a63b9de7afd4b273ae85730ade")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
 
@@ -71,7 +72,14 @@ def get_current_user(
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = schemas.TokenData(username=username, user_id=payload.get("user_id"))
+        user_id_val = payload.get("user_id")
+        user_uuid = None
+        if user_id_val:
+            try:
+                user_uuid = uuid.UUID(str(user_id_val))
+            except (ValueError, TypeError):
+                pass
+        token_data = schemas.TokenData(username=username, user_id=user_uuid)
     except jwt.PyJWTError:
         raise credentials_exception
 
@@ -79,3 +87,4 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+

@@ -1,6 +1,9 @@
+"use client";
+
 import { DarkThemeToggle } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
+import AuthGuard from "@/components/AuthGuard";
 
 const notificationMethods = [
   {
@@ -38,7 +41,8 @@ const transferMethods = [
 
 export default function FundingPage() {
   return (
-    <main className="min-h-screen bg-[#f5f2ea] text-[#101410] dark:bg-[#07111f] dark:text-[#f3f7fb]">
+    <AuthGuard>
+      <main className="min-h-screen bg-[#f5f2ea] text-[#101410] dark:bg-[#07111f] dark:text-[#f3f7fb]">
       <header className="border-b border-black/10 bg-[#f5f2ea]/90 backdrop-blur dark:border-white/10 dark:bg-[#0a1728]/85">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
           <Link href="/" className="flex items-center gap-3" aria-label="FinSight home">
@@ -158,5 +162,6 @@ export default function FundingPage() {
         </div>
       </section>
     </main>
+    </AuthGuard>
   );
 }

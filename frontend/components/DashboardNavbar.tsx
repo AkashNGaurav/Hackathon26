@@ -1,5 +1,4 @@
 "use client";
-
 import {
   DarkThemeToggle,
   Navbar,
@@ -10,14 +9,40 @@ import {
 } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Wallet } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getStoredUser, removeToken, AuthUser } from "@/lib/auth";
+import { getStoredUser, removeToken, AuthUser, API_BASE_URL } from "@/lib/auth";
 
 export function DashboardNavbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
+
+  const [walletBalance, setWalletBalance] = useState<number>(12450);
+
+  useEffect(() => {
+    const updateBalance = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/wallet/balance`);
+        if (res.ok) {
+          const data = await res.json();
+          setWalletBalance(data.balance);
+          localStorage.setItem("investpro_wallet_balance", data.balance.toString());
+          return;
+        }
+      } catch (err) {
+        // Fallback to localStorage
+      }
+      const saved = localStorage.getItem("investpro_wallet_balance");
+      if (saved) setWalletBalance(Number(saved));
+    };
+
+    updateBalance();
+    window.addEventListener("walletUpdated", updateBalance);
+    return () => window.removeEventListener("walletUpdated", updateBalance);
+  }, []);
+
 
   useEffect(() => {
     setUser(getStoredUser());
@@ -25,7 +50,7 @@ export function DashboardNavbar() {
 
   const handleLogout = () => {
     removeToken();
-    router.push("/login");
+    window.location.href = "/";
   };
 
   const navLinks = [
@@ -38,7 +63,7 @@ export function DashboardNavbar() {
   return (
     <Navbar
       fluid
-      className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f2ea]/95 backdrop-blur-md dark:border-white/10 dark:bg-[#090b0a]/90 px-3 py-2.5 sm:px-4 sm:py-3"
+      className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f2ea]/95 backdrop-blur-md dark:border-white/10 dark:bg-[#090b0a]/90 px-3 sm:px-6 py-2.5"
     >
       <NavbarBrand as={Link} href="/dashboard" className="flex items-center gap-2 sm:gap-3">
         <Image
@@ -49,12 +74,20 @@ export function DashboardNavbar() {
           className="size-8 sm:size-9 shrink-0"
           priority
         />
-        <span className="self-center whitespace-nowrap text-lg sm:text-xl font-bold tracking-tight text-[#101410] dark:text-[#f6f3ea]">
+        <span className="self-center whitespace-nowrap text-lg sm:text-xl font-black tracking-tight text-[#101410] dark:text-[#f6f3ea]">
           FinSight
         </span>
       </NavbarBrand>
 
       <div className="flex items-center gap-1.5 sm:gap-3 md:order-2">
+        {/* Wallet Balance Pill */}
+        <Link
+          href="/dashboard/wallet"
+          className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#2f6b4f]/10 dark:bg-[#a7d48f]/10 border border-[#2f6b4f]/20 dark:border-[#a7d48f]/20 text-[#2f6b4f] dark:text-[#a7d48f] hover:bg-[#2f6b4f]/20 dark:hover:bg-[#a7d48f]/20 transition-all font-bold text-[11px] sm:text-xs"
+        >
+          <Wallet className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+          <span>€{walletBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </Link>
         {user?.username && (
           <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#2f6b4f]/15 text-[#2f6b4f] dark:bg-[#8bc6ff]/20 dark:text-[#8bc6ff] max-w-[100px] xs:max-w-[140px] sm:max-w-none truncate">
             <svg
@@ -82,11 +115,11 @@ export function DashboardNavbar() {
             Logout
           </button>
         )}
-        <DarkThemeToggle className="focus:ring-2 focus:ring-[#2f6b4f] dark:focus:ring-[#a7d48f]" />
-        <NavbarToggle className="focus:ring-2 focus:ring-[#2f6b4f] dark:focus:ring-[#a7d48f]" />
+        <DarkThemeToggle className="p-1.5 sm:p-2 focus:ring-2 focus:ring-[#2f6b4f] dark:focus:ring-[#a7d48f]" />
+        <NavbarToggle className="p-1.5 sm:p-2 focus:ring-2 focus:ring-[#2f6b4f] dark:focus:ring-[#a7d48f]" />
       </div>
 
-      <NavbarCollapse>
+      <NavbarCollapse className="mt-2 md:mt-0">
         {user?.username && (
           <div className="md:hidden border-b border-black/10 dark:border-white/10 pb-3 mb-2 px-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -117,11 +150,10 @@ export function DashboardNavbar() {
               as={Link}
               href={link.href}
               active={isActive}
-              className={`font-medium transition-colors ${
-                isActive
-                  ? "text-[#2f6b4f] font-semibold dark:text-[#a7d48f]"
-                  : "text-[#4e574b] hover:text-[#101410] dark:text-[#c8c3b7] dark:hover:text-white"
-              }`}
+              className={`font-medium text-sm py-2 px-3 transition-colors ${isActive
+                ? "text-[#2f6b4f] font-bold dark:text-[#a7d48f]"
+                : "text-[#4e574b] hover:text-[#101410] dark:text-[#c8c3b7] dark:hover:text-white"
+                }`}
             >
               {link.label}
             </NavbarLink>

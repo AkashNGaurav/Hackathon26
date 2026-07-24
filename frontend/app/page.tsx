@@ -4,6 +4,7 @@ import { DarkThemeToggle } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getStoredUser, AuthUser } from "@/lib/auth";
 
 const features = [
   {
@@ -44,16 +45,18 @@ const products = [
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     setMounted(true);
+    setUser(getStoredUser());
   }, []);
 
   return (
     <main suppressHydrationWarning className="min-h-screen bg-[#f5f2ea] text-[#101410] transition-colors dark:bg-[#07111f] dark:text-[#f3f7fb]">
       <header className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f2ea]/90 backdrop-blur dark:border-white/10 dark:bg-[#0a1728]/85">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 md:py-4 lg:px-8">
-          <Link href="/" className="flex items-center gap-3" aria-label="FinSight home">
+          <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-3" aria-label="FinSight home">
             <Image
               src="/logo.png"
               alt="FinSight logo"

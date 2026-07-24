@@ -3,12 +3,6 @@ import MarketIndicesBar from "@/components/MarketIndicesBar";
 import MarketInsightCard from "@/components/MarketInsightCard";
 import MarketNewsFeed from "@/components/MarketNewsFeed";
 import EUMarketTable from "@/components/EUMarketTable";
-<<<<<<< HEAD
-import PortfolioNewsTicker from "@/components/PortfolioNewsTicker";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-=======
->>>>>>> 63d58b2 (feat: implement backend Pydantic schemas and frontend ETF dashboard with market data integration)
 
 export default function DashboardPage() {
   return (
@@ -20,9 +14,9 @@ export default function DashboardPage() {
       <MarketIndicesBar />
 
       {/* 3. Main Dashboard Content Area */}
-      <main className="flex-1 p-6 md:p-8">
-        <div className="mx-auto max-w-7xl space-y-8">
-          {/* Top Section: AI Market Insight Summary */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl space-y-6 lg:space-y-8">
+          {/* AI Market Insight Summary */}
           <section id="market-insights">
             <MarketInsightCard />
           </section>

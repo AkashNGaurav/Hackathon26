@@ -32,3 +32,4 @@ node_modules/
 
 # Database
 *.db
+backend/fintech.db

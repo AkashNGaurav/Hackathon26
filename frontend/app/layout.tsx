@@ -1,7 +1,13 @@
 import { ThemeModeScript } from "flowbite-react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeInit } from "../.flowbite-react/init";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: "FinSight | Invest and Save",
@@ -21,6 +27,19 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeModeScript />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for (let registration of registrations) {
+                    registration.unregister();
+                  }
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className="antialiased">
         <ThemeInit />

@@ -22,7 +22,15 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    if hashed_password and (hashed_password.startswith("$2b$") or hashed_password.startswith("$2a$")):
+        try:
+            from passlib.context import CryptContext
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            return pwd_context.verify(plain_password, hashed_password)
+        except Exception:
+            pass
     return hash_password(plain_password) == hashed_password
+
 
 
 def create_access_token(user_id: Any, username: str, email: str, expires_in_seconds: int = DEFAULT_EXPIRE_SECONDS) -> str:

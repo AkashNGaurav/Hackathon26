@@ -1,22 +1,20 @@
 import logging
+from typing import Optional
+import uuid
+from contextlib import asynccontextmanager
 
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI, HTTPException, Depends, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
-import uuid
-from typing import Optional
-from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from app import models, schemas, crud, agents, db as db_module
+
+from app import models, schemas, crud, agents, auth, db as db_module
 from app.conf.config import services
 from app.depends import get_db, get_llm, get_model_provider
-from contextlib import asynccontextmanager
-from app.routers import market_data, ai_advisor
-from app import models, schemas, crud, agents, auth, db as db_module
-
-security = HTTPBearer()
+from app.services.model_provider import ChatModelProvider
+from app.routers import market_data, ai_advisor, trading
 
 load_dotenv()
 
@@ -39,11 +37,23 @@ logger = logging.getLogger(__name__)
 # Allow explicit origins for Next.js and Vite dev servers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.options("/{full_path:path}")
+def options_handler(full_path: str):
+    return {}
 
 
 models.Base.metadata.create_all(bind=db_module.engine)
@@ -51,6 +61,7 @@ models.Base.metadata.create_all(bind=db_module.engine)
 # Register routers
 app.include_router(market_data.router)
 app.include_router(ai_advisor.router)
+app.include_router(trading.router)
 
 
 def get_db():
@@ -62,35 +73,6 @@ def get_db():
         raise
     finally:
         db.close()
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
-) -> models.User:
-    from app.auth_utils import decode_access_token
-    token = credentials.credentials
-    try:
-        payload = decode_access_token(token)
-        user_id_str = payload.get("user_id")
-        if not user_id_str:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token claims")
-        user_uuid = uuid.UUID(user_id_str)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    user = crud.get_user_by_id(db, user_uuid)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
 
 
 @app.exception_handler(SQLAlchemyError)
@@ -108,23 +90,23 @@ def health():
 
 
 @app.post("/api/chat/mutual-funds", response_model=schemas.ChatResponse)
-def chat_mutual_funds(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return agents.MutualFundAgent(db).reply(request.message, request.session_id, current_user.id)
+def chat_mutual_funds(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.MutualFundAgent(db).reply(request.message, request.session_id)
 
 
 @app.post("/api/chat/etfs", response_model=schemas.ChatResponse)
-def chat_etfs(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return agents.EtfAgent(db).reply(request.message, request.session_id, current_user.id)
+def chat_etfs(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.EtfAgent(db).reply(request.message, request.session_id)
 
 
 @app.post("/api/chat/stocks", response_model=schemas.ChatResponse)
-def chat_stocks(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return agents.StockAgent(db).reply(request.message, request.session_id, current_user.id)
+def chat_stocks(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.StockAgent(db).reply(request.message, request.session_id)
 
 
 @app.post("/api/chat/investment-advisor", response_model=schemas.ChatResponse)
-def chat_investment_advisor(request: schemas.ChatRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return agents.InvestmentAdvisorAgent(db).reply(request.message, request.session_id, current_user.id)
+def chat_investment_advisor(request: schemas.ChatRequest, db: Session = Depends(get_db)):
+    return agents.InvestmentAdvisorAgent(db).reply(request.message, request.session_id)
 
 # --- Auth Endpoints ---
 
@@ -172,6 +154,40 @@ def login_user(credentials: schemas.UserLoginRequest, db: Session = Depends(get_
     )
 
 
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+) -> models.User:
+    from app.auth_utils import decode_access_token
+    token = credentials.credentials
+    try:
+        payload = decode_access_token(token)
+        user_id_str = payload.get("user_id")
+        if not user_id_str:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token claims")
+        user_uuid = uuid.UUID(user_id_str)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user = crud.get_user_by_id(db, user_uuid)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
+
+
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 def get_current_user_profile(current_user: models.User = Depends(get_current_user)):
     return current_user
@@ -196,10 +212,10 @@ def update_kyc_status(
 
 @app.get("/api/recommendations", response_model=schemas.RecommendationResponse)
 def get_recommendations(
-    risk_profile: str = Query("moderate", pattern="^(low|moderate|high)$"),
+    risk_profile: str = Query("moderate"),
     investment_horizon: int = Query(5, ge=1, le=30),
     db: Session = Depends(get_db),
-    llm: ChatModelProvider = Depends(get_model_provider)
+    llm: ChatModelProvider = Depends(get_model_provider),
 ):
     agent = agents.InvestmentAgent(db, llm)
     recommendation = agent.recommend(risk_profile=risk_profile, investment_horizon=investment_horizon)
@@ -327,54 +343,5 @@ def get_asset_allocation(allocation_id: int, db: Session = Depends(get_db)):
         )
     return db_allocation
 
-# --- Authentication Endpoints ---
 
-@app.post("/api/auth/register", response_model=schemas.Token, status_code=201)
-def register(user_in: schemas.UserRegister, db: Session = Depends(get_db)):
-    if crud.get_user_by_username(db, user_in.username):
-        raise HTTPException(status_code=400, detail="Username already registered")
-    if crud.get_user_by_email(db, user_in.email):
-        raise HTTPException(status_code=400, detail="Email already registered")
-    user = crud.create_user(db, user_in)
-    access_token = auth.create_access_token(data={"sub": user.username, "user_id": user.id})
-    return schemas.Token(
-        access_token=access_token,
-        token_type="bearer",
-        user=schemas.UserResponse.model_validate(user) if hasattr(schemas.UserResponse, "model_validate") else schemas.UserResponse.from_orm(user)
-    )
-
-
-@app.post("/api/auth/login", response_model=schemas.Token)
-def login(user_in: schemas.UserLogin, db: Session = Depends(get_db)):
-    user = crud.get_user_by_username(db, user_in.username)
-    if not user or not auth.verify_password(user_in.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
-    access_token = auth.create_access_token(data={"sub": user.username, "user_id": user.id})
-    return schemas.Token(
-        access_token=access_token,
-        token_type="bearer",
-        user=schemas.UserResponse.model_validate(user) if hasattr(schemas.UserResponse, "model_validate") else schemas.UserResponse.from_orm(user)
-    )
-
-
-@app.get("/api/auth/me", response_model=schemas.UserResponse)
-def get_me(current_user: models.User = Depends(auth.get_current_user)):
-    return current_user
-
-
-@app.put("/api/auth/me/kyc", response_model=schemas.KYCUpdateResponse)
-def update_kyc(
-    kyc_in: schemas.KYCUpdateSchema,
-    current_user: models.User = Depends(auth.get_current_user),
-    db: Session = Depends(get_db),
-):
-    updated_user = crud.update_user_kyc(db, current_user, kyc_in.kyc_completed)
-    return schemas.KYCUpdateResponse(
-        id=updated_user.id,
-        email=updated_user.email,
-        username=updated_user.username,
-        country=updated_user.country,
-        kyc_completed=updated_user.kyc_completed,
-        message="KYC status updated successfully",
-    )
 
