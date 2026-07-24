@@ -193,14 +193,30 @@ class ChatModelProvider:
         model_name = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
         client = self.get(model=model_name)
         memory = self.get_memory(user_id=user_id, prompt=prompt)
-        response = client.chat.completions.create(
-            model=model_name,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT + memory},
-                {"role": "user", "content": prompt}
-            ]
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                response_format={"type": "json_object"},
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT + memory},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+        except Exception as exc:
+            if model_name != "gemini-3.6-flash":
+                logger.warning("Primary model %s failed (%s), trying gemini-3.6-flash fallback", model_name, exc)
+                fallback_client = self.get(model="gemini-3.6-flash")
+                response = fallback_client.chat.completions.create(
+                    model="gemini-3.6-flash",
+                    response_format={"type": "json_object"},
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT + memory},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+            else:
+                raise exc
+
         ai_response = response.choices[0].message.content
         self.add_memory(user_id=user_id, user_prompt=prompt, ai_response=ai_response)
         return ai_response
@@ -210,10 +226,22 @@ class ChatModelProvider:
         client = self.get(model=model_name)
         prompt = "".join([message["content"] for message in messages if isinstance(message, dict) and "content" in message])
         memory = self.get_memory(user_id=user_id, prompt=prompt)
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "system", "content": system_prompt + memory}, *messages],
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "system", "content": system_prompt + memory}, *messages],
+            )
+        except Exception as exc:
+            if model_name != "gemini-3.6-flash":
+                logger.warning("Primary model %s failed (%s), trying gemini-3.6-flash fallback", model_name, exc)
+                fallback_client = self.get(model="gemini-3.6-flash")
+                response = fallback_client.chat.completions.create(
+                    model="gemini-3.6-flash",
+                    messages=[{"role": "system", "content": system_prompt + memory}, *messages],
+                )
+            else:
+                raise exc
+
         ai_response = response.choices[0].message.content
         self.add_memory(ai_response=ai_response, user_prompt=prompt, user_id=user_id)
         return (ai_response or "I could not generate a response.").strip()
