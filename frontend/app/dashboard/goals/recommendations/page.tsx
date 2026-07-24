@@ -157,7 +157,7 @@ function AIRecommendationsContent() {
           custom_goal_title: customTitle
         };
 
-        let recRes = await fetch(`${API_BASE_URL}/api/ai/recommend-mf`, {
+        const recRes = await fetch(`${API_BASE_URL}/api/ai/recommend-mf`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -169,13 +169,13 @@ function AIRecommendationsContent() {
         } else {
           setAiData(generateFallbackAIRecs());
         }
-      } catch (err) {
+      } catch {
         setAiData(generateFallbackAIRecs());
       }
 
       try {
         const riskParam = risk === "conservative" ? "low" : risk === "aggressive" ? "high" : risk;
-        let allocRes = await fetch(`${API_BASE_URL}/api/recommendations?risk_profile=${riskParam}&investment_horizon=${targetYears}`).catch(() => null);
+        const allocRes = await fetch(`${API_BASE_URL}/api/recommendations?risk_profile=${riskParam}&investment_horizon=${targetYears}`).catch(() => null);
 
         if (allocRes && allocRes.ok) {
           const aData = await allocRes.json();
@@ -253,8 +253,9 @@ function AIRecommendationsContent() {
       window.dispatchEvent(new Event("walletUpdated"));
 
       setOrderSuccess(true);
-    } catch (err: any) {
-      setOrderError(err.message || "Could not complete order.");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Could not complete order.";
+      setOrderError(errorMsg);
     } finally {
       setOrderLoading(false);
     }
@@ -380,7 +381,7 @@ function AIRecommendationsContent() {
                   </div>
 
                   <div className="p-3 rounded-xl bg-[#2f6b4f]/5 dark:bg-[#a7d48f]/5 border border-[#2f6b4f]/10 text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed">
-                    "{rec.ai_rationale}"
+                    &quot;{rec.ai_rationale}&quot;
                   </div>
                 </div>
 

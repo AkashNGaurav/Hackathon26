@@ -192,10 +192,10 @@ class EuropeanMarketChatAgent:
     agent_type: str
     system_prompt: str
 
-    def __init__(self, db, client: GeminiClient | None = None):
+    def __init__(self, db, client: ChatModelProvider | None = None):
         self.db = db
         # Do not cache this agent: db is a request-scoped SQLAlchemy Session.
-        self.client = client or get_gemini_client()
+        self.client = client or ChatModelProvider()
 
     def reply(self, message: str, session_id: str | None = None, user_id: UUID=None) -> dict[str, str]:
         session_id = session_id or str(uuid4())

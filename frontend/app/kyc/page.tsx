@@ -1,6 +1,7 @@
 "use client";
 
 import { updateKycStatus } from "@/lib/auth";
+import AuthGuard from "@/components/AuthGuard";
 import { DarkThemeToggle } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -226,7 +227,8 @@ export default function KycPage() {
   }
 
   return (
-    <main suppressHydrationWarning className="min-h-screen bg-[#f5f2ea] text-[#101410] dark:bg-[#07111f] dark:text-[#f3f7fb]">
+    <AuthGuard>
+      <main suppressHydrationWarning className="min-h-screen bg-[#f5f2ea] text-[#101410] dark:bg-[#07111f] dark:text-[#f3f7fb]">
       <header className="border-b border-black/10 bg-[#f5f2ea]/90 backdrop-blur dark:border-white/10 dark:bg-[#0a1728]/85">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
           <Link href="/" className="flex items-center gap-3" aria-label="FinSight home">
@@ -892,5 +894,6 @@ export default function KycPage() {
         </form>
       </section>
     </main>
+    </AuthGuard>
   );
 }

@@ -50,7 +50,7 @@ export function DashboardNavbar() {
 
   const handleLogout = () => {
     removeToken();
-    router.push("/login");
+    window.location.href = "/";
   };
 
   const navLinks = [

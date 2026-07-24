@@ -1,6 +1,6 @@
 "use client";
 
-import { loginUser } from "@/lib/auth";
+import { loginUser, getToken } from "@/lib/auth";
 import { DarkThemeToggle } from "flowbite-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +12,10 @@ export default function LoginPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (getToken()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

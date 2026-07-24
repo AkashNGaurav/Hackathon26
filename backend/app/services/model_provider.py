@@ -13,7 +13,7 @@ MODEL_CONFIG = {
     "llm": {
         "provider": "gemini",
         "config": {
-            "model": "gemini-3-flash-preview",
+            "model": os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
             "api_key": os.environ.get("GEMINI_API_KEY")
         }
     },
@@ -27,8 +27,8 @@ MODEL_CONFIG = {
     "vector_store": {
         "provider": "qdrant",
         "config": {
-            "host": "localhost",
-            "port": 6333,
+            "host": os.getenv("QDRANT_HOST", "localhost"),
+            "port": int(os.getenv("QDRANT_PORT", "6333")),
             "embedding_model_dims": 768
         }
     }
@@ -85,9 +85,6 @@ A:
 
 class ChatModelProvider:
     _instance = None
-    api_key = os.environ.get("GEMINI_API_KEY")
-    api_url = os.environ.get("GEMINI_API_URL")
-    memory_client = Memory.from_config(MODEL_CONFIG)
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -96,8 +93,28 @@ class ChatModelProvider:
 
     def __init__(self):
         if not hasattr(self, 'initialized'):
+            self.api_key = os.environ.get("GEMINI_API_KEY")
+            self.api_url = os.environ.get("GEMINI_API_URL")
             self._llm_cache = {}
+            self._memory_client = None
+            self._memory_init_attempted = False
             self.initialized = True
+
+    @property
+    def memory_client(self) -> Optional[Any]:
+        if not self._memory_init_attempted:
+            self._memory_init_attempted = True
+            if Memory is not None:
+                try:
+                    self._memory_client = Memory.from_config(MODEL_CONFIG)
+                except Exception as e:
+                    host = MODEL_CONFIG["vector_store"]["config"]["host"]
+                    port = MODEL_CONFIG["vector_store"]["config"]["port"]
+                    print(f"[Mem0 Warning] Could not connect to Qdrant vector store at {host}:{port} ({e}). Memory features disabled.")
+                    self._memory_client = None
+            else:
+                self._memory_client = None
+        return self._memory_client
 
     def get(self, model: Optional[str], temperature: float = 0, 
             max_tokens: Optional[int] = None, max_retries: int = 6):
@@ -113,30 +130,29 @@ class ChatModelProvider:
     def get_memory(self, user_id: str, prompt: str) -> str:
         """
         Get the memory associated to the user regarding the investments.
-        Here, system will try and devise the investment style by nature of
-        conversations and other discussions of the particular user.
-        :param user_id: UserID of the user trying to prompt
-        :param prompt: Prompt given by the user
-        :return: String containing the memory of the user
         """
-        search_memory = self.memory_client.search(user_id=user_id, query=prompt)
-        if search_memory:
-            memories = [
-                f"ID: {memory.id}\nMemory: {memory.text}" for memory in search_memory.get("results")
-            ]
-            print("Memory found for user", user_id)
-            return f"""Here is the context about the user: {json.dumps(memories)}"""
-        print("Memory not found for user", user_id)
+        if not user_id or not self.memory_client:
+            return ""
+
+        try:
+            search_memory = self.memory_client.search(user_id=user_id, query=prompt)
+            if search_memory and isinstance(search_memory, dict) and search_memory.get("results"):
+                memories = [
+                    f"ID: {memory.id}\nMemory: {memory.text}" for memory in search_memory.get("results")
+                ]
+                print("Memory found for user", user_id)
+                return f"""Here is the context about the user: {json.dumps(memories)}"""
+        except Exception as e:
+            print(f"Error fetching memory for user {user_id}:", e)
         return ""
 
     def add_memory(self, ai_response: str, user_prompt: str, user_id: str) -> bool:
         """
         Adds memory for the particular prompt and keeps it ready for the next response
-        :param ai_response: AI response to be added to memory
-        :param user_prompt: User prompt to be added to memory
-        :param user_id: User ID of the user
-        :return: True if memory is added successfully, False otherwise
         """
+        if not user_id or not self.memory_client:
+            return False
+
         try:
             self.memory_client.add(
                 user_id=user_id, 
@@ -147,15 +163,15 @@ class ChatModelProvider:
             )
             return True
         except Exception as e:
-            print("Error adding memory:", e)
+            print(f"Error adding memory for user {user_id}:", e)
             return False
 
     def analyze_text(self, prompt: str, user_id: str) -> dict[str, Any]:
-        # Placeholder for Gemini or compatible model call
-        client = self.get(model="gemini-3-flash-preview")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        client = self.get(model=model_name)
         memory = self.get_memory(user_id=user_id, prompt=prompt)
         response = client.chat.completions.create(
-            model="gemini-3-flash-preview",
+            model=model_name,
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT + memory},
@@ -167,11 +183,12 @@ class ChatModelProvider:
         return ai_response
     
     def chat(self, system_prompt: str, messages: list[dict[str, str]], user_id: str="") -> str:
-        client = self.get(model="gemini-3-flash-preview")
-        prompt = "".join([message["content"] for message in messages])
+        model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        client = self.get(model=model_name)
+        prompt = "".join([message["content"] for message in messages if isinstance(message, dict) and "content" in message])
         memory = self.get_memory(user_id=user_id, prompt=prompt)
         response = client.chat.completions.create(
-            model="gemini-3-flash-preview",
+            model=model_name,
             messages=[{"role": "system", "content": system_prompt + memory}, *messages],
         )
         ai_response = response.choices[0].message.content

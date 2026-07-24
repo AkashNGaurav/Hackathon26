@@ -365,8 +365,9 @@ export default function ETFPage() {
       window.dispatchEvent(new Event("walletUpdated"));
 
       setBuySuccess(true);
-    } catch (err: any) {
-      setBuyError(err.message || "Could not complete ETF purchase.");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Could not complete ETF purchase.";
+      setBuyError(errorMsg);
     } finally {
       setBuyLoading(false);
     }

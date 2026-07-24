@@ -12,14 +12,12 @@ import {
   Briefcase,
   PieChart,
   Layers,
-  User as UserIcon,
   Copy,
   Check,
   Maximize2,
   Minimize2,
   ArrowDown,
   Zap,
-  Info,
   ChevronRight,
   ShieldAlert,
 } from "lucide-react";
@@ -506,7 +504,7 @@ export function AIChatbotWidget() {
                         onClick={() => handleSendMessage(promptText)}
                         className="w-full text-left p-3 rounded-2xl bg-white/90 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-[#2f6b4f]/40 dark:hover:border-[#a7d48f]/40 hover:bg-white dark:hover:bg-white/10 text-xs text-[#090c0a] dark:text-[#f8faf7] font-medium transition-all group flex items-center justify-between gap-2 shadow-xs"
                       >
-                        <span className="flex-1">"{promptText}"</span>
+                        <span className="flex-1">&quot;{promptText}&quot;</span>
                         <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#2f6b4f] dark:group-hover:text-[#a7d48f] group-hover:translate-x-0.5 transition-all shrink-0" />
                       </button>
                     ))}

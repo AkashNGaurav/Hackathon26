@@ -450,8 +450,9 @@ function MutualFundContent() {
       window.dispatchEvent(new Event("walletUpdated"));
 
       setOrderSuccess(true);
-    } catch (err: any) {
-      setOrderError(err.message || "Could not complete transaction.");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Could not complete transaction.";
+      setOrderError(errorMsg);
     } finally {
       setOrderLoading(false);
     }
@@ -957,46 +958,6 @@ function MutualFundContent() {
                   <DollarSign size={16} /> One-Time Lump Sum
                 </button>
               </div>
-
-              {/* SIP Specific Settings */}
-              {investType === "sip" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="sip-freq" className="mb-2 block text-xs font-bold text-gray-700 dark:text-gray-300">
-                      SIP Frequency
-                    </Label>
-                    <Select
-                      id="sip-freq"
-                      value={sipFrequency}
-                      onChange={(e: any) => setSipFrequency(e.target.value as any)}
-                    >
-                      <option value="monthly">Monthly SIP</option>
-                      <option value="quarterly">Quarterly SIP</option>
-                      <option value="yearly">Yearly SIP</option>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="sip-date" className="mb-2 block text-xs font-bold text-gray-700 dark:text-gray-300">
-                      Preferred Debit Date
-                    </Label>
-                    <Select
-                      id="sip-date"
-                      value={sipDate}
-                      onChange={(e: any) => setSipDate(e.target.value)}
-                    >
-                      <option value="1">1st of every period</option>
-                      <option value="5">5th of every period</option>
-                      <option value="10">10th of every period</option>
-                      <option value="15">15th of every period</option>
-                      <option value="25">25th of every period</option>
-                    </Select>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                  <Zap size={16} /> Lump Sum / One-Time investment lets you purchase units immediately at today's NAV (${selectedFund?.current_price}).
-                </div>
-              )}
 
               {/* Amount Selection */}
               <div className="space-y-2">
