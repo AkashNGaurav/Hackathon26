@@ -15,6 +15,8 @@ services:
         generateValue: true
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "1440"
+      - key: ALLOWED_ORIGINS
+        value: "https://finsight-ui-eight.vercel.app,http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:5173,http://localhost:5173"
       - key: GEMINI_API_KEY
         sync: false
 
