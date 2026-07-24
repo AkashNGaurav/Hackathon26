@@ -34,7 +34,6 @@ lifespan=lifespan)
 
 logger = logging.getLogger(__name__)
 
-# Allow explicit origins for Next.js and Vite dev servers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -44,16 +43,13 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "http://127.0.0.1:5173",
         "http://localhost:5173",
+        "https://finsight-ui-eight.vercel.app",
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.options("/{full_path:path}")
-def options_handler(full_path: str):
-    return {}
 
 
 models.Base.metadata.create_all(bind=db_module.engine)

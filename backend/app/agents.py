@@ -262,16 +262,21 @@ class InvestmentAgent:
             f" with a {investment_horizon}-year horizon."
         )
         try:
-            analysis = self.client.analyze_text(prompt, user_id="")
-        except (APIError, RuntimeError, json.JSONDecodeError):
-            logger.warning("AI provider unavailable for investment recommendation", exc_info=True)
+            if hasattr(self.client, "analyze_text"):
+                analysis = self.client.analyze_text(prompt, user_id="")
+            elif hasattr(self.client, "chat"):
+                analysis = self.client.chat("Provide investment rationale", [{"role": "user", "content": prompt}])
+            else:
+                analysis = "Diversified portfolio aligned with risk profile."
+        except Exception as err:
+            logger.warning("AI provider unavailable for investment recommendation: %s", err)
             return (
                 "This allocation is a general educational example based on the selected risk profile "
                 "and time horizon. The AI-generated rationale is temporarily unavailable."
             )
         return (
-            f"A balanced portfolio with diversified exposure. "
-            f"Model output says: {analysis}"
+            f"A balanced portfolio with diversified exposure tailored for a {risk_profile} investor over a {investment_horizon}-year horizon. "
+            f"Model guidance: {analysis}"
         )
 
 
