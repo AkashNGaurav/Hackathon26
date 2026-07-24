@@ -9,4 +9,5 @@ class Services:
 
     async def initialize(self):
         self.agent = ChatModelProvider()
-        print("✅ ChatModelProvider initialized successfully")
+        print("[OK] ChatModelProvider initialized successfully")
+

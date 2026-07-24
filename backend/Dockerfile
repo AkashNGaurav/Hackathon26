@@ -13,8 +13,9 @@ RUN python -m pip install --upgrade pip && pip install --no-cache-dir -r require
 # Copy application code
 COPY . /app
 
-# Environment configuration for SQLite
+# Environment configuration for SQLite and UTF-8 encoding
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=utf-8
 ENV DATABASE_URL="sqlite:///./fintech.db"
 
 EXPOSE 8000
