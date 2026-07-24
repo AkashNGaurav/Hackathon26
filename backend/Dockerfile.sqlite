@@ -1,18 +1,20 @@
 FROM python:3.11-slim
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and install python dependencies
 COPY requirements.txt .
-RUN python -m pip install --upgrade pip && pip install -r requirements.txt
+RUN python -m pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY ./app ./app
+COPY . /app
 
-# Create directory for SQLite database storage
+# Ensure SQLite data directory exists
 RUN mkdir -p /app/data
-
-# Copy pre-populated fintech.db if present
-COPY ./fintech.db* /app/data/fintech.db
 
 # Environment configuration for SQLite
 ENV PYTHONUNBUFFERED=1
